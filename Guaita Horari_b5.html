@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guaita horaris · assignatures i professors</title>
+<style>
+:root{
+  --ink:#14181d; --muted:#5b6670; --line:#d8dee4; --paper:#fff; --canvas:#e9edf1;
+  --panel:#f6f8fa; --accent:#0f766e; --accent-d:#0b5a54; --warn:#b45309;
+  --bad:#dc2626; --ok:#15803d; --soft:#eef6f5;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--sans);color:var(--ink);background:var(--canvas);font-size:14px;line-height:1.45}
+h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.01em}
+button{font-family:inherit;font-size:13px;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:6px 11px;border-radius:7px}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{background:var(--accent-d);color:#fff}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+button.ghost:hover{color:var(--accent);border-color:transparent}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select{font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:5px 7px;background:var(--paper);color:var(--ink);width:100%}
+input:focus,select:focus{outline:2px solid var(--soft);border-color:var(--accent)}
+textarea{font-family:var(--mono);font-size:12.5px;width:100%;min-height:120px;border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical;background:var(--paper);color:var(--ink);line-height:1.5}
+textarea:focus{outline:2px solid var(--soft);border-color:var(--accent)}
+.msg-err{color:var(--bad)!important}
+.mono{font-family:var(--mono)}
+
+header.app{display:flex;align-items:center;gap:14px;padding:11px 18px;background:var(--ink);color:#fff;position:sticky;top:0;z-index:20}
+header.app h1{font-size:15px;color:#fff;display:flex;align-items:center;gap:9px}
+header.app .dot{width:9px;height:9px;border-radius:2px;background:var(--accent);display:inline-block;transform:rotate(45deg)}
+header.app .sub{color:#9aa6b0;font-size:12px;font-family:var(--mono)}
+header.app .spacer{flex:1}
+header.app button{background:#222a32;border-color:#333d47;color:#e6ebf0;padding:6px 10px}
+header.app button:hover{border-color:var(--accent);color:#fff}
+
+nav.tabs{display:flex;gap:2px;padding:0 18px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:43px;z-index:15;overflow-x:auto}
+nav.tabs button{border:none;border-bottom:2px solid transparent;border-radius:0;background:none;color:var(--muted);padding:11px 14px;font-weight:550;white-space:nowrap}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+.navsep{align-self:center;color:var(--accent);font-size:17px;padding:0 4px;user-select:none;cursor:help;opacity:.7}
+
+main{padding:18px;max-width:1380px;margin:0 auto}
+.tab{display:none}.tab.active{display:block}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.col{flex:1;min-width:280px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:16px;margin-bottom:16px}
+.card>h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card>h2 .n{font-family:var(--mono);color:var(--accent);font-size:12px}
+.hint{color:var(--muted);font-size:12.5px;margin:2px 0 12px}
+
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th{text-align:left;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:7px 8px;border-bottom:1.5px solid var(--line)}
+table.data td{padding:3px 6px;border-bottom:1px solid var(--canvas);vertical-align:middle}
+table.data input,table.data select{padding:4px 6px}
+table.data tr:hover td{background:#fafcfd}
+.tbl-actions{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.tbl-top{margin-top:0;margin-bottom:11px}
+.import-card{padding:14px 16px}
+.import-card>summary{cursor:pointer;list-style:none;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:8px}
+.import-card>summary::-webkit-details-marker{display:none}
+.import-card>summary .n{font-family:var(--mono);color:var(--accent);font-size:12px}
+.import-card>summary .chev{margin-left:auto;transition:transform .15s;color:var(--accent);font-size:12px}
+.import-card[open]>summary .chev{transform:rotate(180deg)}
+.import-body{margin-top:14px}
+.del{color:var(--bad);border-color:transparent;background:none;padding:4px 7px;font-size:16px;line-height:1}
+.del:hover{background:#fee2e2;border-color:transparent;color:var(--bad)}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px;background:var(--soft);color:var(--accent-d);border:1px solid #cfe6e3}
+
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:12px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);background:var(--paper);cursor:pointer;user-select:none}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.fixcell{align-items:center;gap:5px}
+.fixcell select,.fixcell input{padding:3px 6px}
+.pin{padding:3px 8px;border:1px solid var(--line);background:var(--paper);border-radius:6px;font-size:13px;line-height:1}
+.pin:hover{border-color:var(--accent)}
+.off .data{opacity:.4;pointer-events:none}
+.grp-h td{background:var(--soft);color:var(--accent-d);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:7px 8px;border-bottom:1.5px solid var(--line)}
+.esc-h td{background:var(--ink);color:#fff;font-weight:700;font-size:12px;letter-spacing:.07em;padding:8px 9px}
+.curs-block{margin-bottom:24px}
+.curs-title{font-size:14px;font-weight:650;color:var(--accent-d);margin:0 0 9px;display:flex;align-items:center;gap:10px;padding-bottom:7px;border-bottom:2px solid var(--soft)}
+.curs-meta{font-weight:400;color:var(--muted);font-size:12px;font-family:var(--mono)}
+
+/* matrius */
+.matrix{overflow:auto;border:1px solid var(--line);border-radius:9px}
+.matrix table{border-collapse:collapse;font-size:12px}
+.matrix th,.matrix td{border:1px solid var(--canvas);padding:0;text-align:center}
+.matrix th{background:var(--panel);padding:6px 8px;color:var(--muted);font-weight:600;position:sticky;font-size:11px}
+.matrix thead th{top:0;z-index:2}
+.matrix tbody th{left:0;z-index:1;text-align:left;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis}
+.matrix tbody th.afin-sep{left:auto;position:static;background:var(--soft);color:var(--accent-d);font-weight:700;font-size:11px;letter-spacing:.06em;padding:5px 9px;text-overflow:clip;max-width:none}
+.cell{width:30px;height:30px;cursor:pointer;font-family:var(--mono);font-weight:600;user-select:none}
+.cell:hover{outline:2px solid var(--accent);outline-offset:-2px}
+.a0{background:#f3f4f6;color:#cbd1d8}
+.a1{background:#e7f5f3;color:#0f766e}
+.a2{background:#cdeae6;color:#0b5a54}
+.a3{background:#0f766e;color:#fff}
+.av0{background:#fde2e2;color:#dc2626}
+.av1{background:#fff;color:#cbd1d8}
+.av2{background:#dff3e6;color:#15803d}
+
+/* controls restriccions */
+.ctrl{display:grid;grid-template-columns:26px 1fr 64px 120px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--canvas)}
+.ctrl:last-child{border-bottom:none}
+.ctrl .name{font-weight:550}
+.ctrl .name small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.ctrl input[type=range]{width:100%;padding:0}
+.ctrl .wval{font-family:var(--mono);text-align:right;color:var(--accent-d)}
+.switch{position:relative;width:36px;height:20px;flex:none}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.slider{position:absolute;inset:0;background:#cbd5db;border-radius:20px;transition:.15s}
+.slider:before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s}
+.switch input:checked+.slider{background:var(--accent)}
+.switch input:checked+.slider:before{transform:translateX(16px)}
+
+/* solver */
+.solve-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.fld label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:550}
+.progress{height:9px;background:var(--canvas);border-radius:6px;overflow:hidden;margin:14px 0 6px}
+.progress>div{height:100%;background:var(--accent);width:0;transition:width .1s}
+.stat-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:8px}
+.stat{font-family:var(--mono);font-size:13px}
+.stat b{display:block;font-size:20px;color:var(--ink)}
+.stat span{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 11px;border-radius:20px}
+.badge.ok{background:#dcfce7;color:var(--ok)}
+.badge.bad{background:#fee2e2;color:var(--bad)}
+
+/* timetable */
+.tt-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.tt-bar select{width:auto;min-width:180px}
+.tt-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+.tt{display:grid;position:relative;font-size:11.5px}
+.tt .hcell{background:var(--panel);border-bottom:1px solid var(--line);border-right:1px solid var(--canvas);padding:8px 6px;font-weight:600;text-align:center;color:var(--muted);position:sticky;top:0;z-index:3}
+.tt .tcell{background:var(--panel);border-right:1px solid var(--line);border-bottom:1px solid var(--canvas);padding:4px 8px;font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:right;position:sticky;left:0;z-index:2;display:flex;align-items:center;justify-content:flex-end}
+.tt .gcell{border-right:1px solid var(--canvas);border-bottom:1px solid var(--canvas);min-height:30px}
+.blk{margin:1.5px;border-radius:6px;padding:5px 7px;color:#fff;overflow:hidden;font-size:11px;line-height:1.25;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.blk b{font-weight:650;display:block}
+.blk small{opacity:.92;font-size:10px}
+.blk.conflict{outline:2.5px solid var(--bad);outline-offset:-2px;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{outline-color:#fca5a5}}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.legend .li{display:flex;align-items:center;gap:6px;font-size:12px}
+.legend .sw{width:13px;height:13px;border-radius:3px}
+
+/* metrics */
+.mtable{width:100%;border-collapse:collapse;font-size:13px}
+.mtable td{padding:7px 8px;border-bottom:1px solid var(--canvas)}
+.mtable td:first-child{color:var(--muted)}
+.mtable td:last-child{text-align:right;font-family:var(--mono);font-weight:600}
+.warnlist{font-size:13px}
+.warnlist .w{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--canvas);color:var(--bad)}
+.warnlist .w.okrow{color:var(--ok)}
+
+.foot{text-align:center;padding:26px 0 14px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.foot .sig{font-family:var(--mono);font-weight:700;letter-spacing:.16em;color:var(--ink);font-size:14px;display:inline-flex;align-items:center;gap:8px}
+.foot .sig::before{content:"";width:8px;height:8px;background:var(--accent);transform:rotate(45deg);display:inline-block}
+.foot .foot-sub{color:var(--muted);font-size:11.5px}
+@media print{
+  header.app,nav.tabs,.tt-bar,.no-print{display:none!important}
+  .tab{display:none!important}.tab.printme{display:block!important}
+  body{background:#fff}main{max-width:none;padding:0}
+  .tt-wrap{border:none}
+}
+@media(max-width:640px){.ctrl{grid-template-columns:26px 1fr;gap:6px}.ctrl .wval,.ctrl input[type=range]{grid-column:2}}
+</style>
+</head>
+<body>
+<header class="app">
+  <h1><span class="dot"></span> Guaita horaris <span class="sub">sense IA generativa</span></h1>
+  <div class="spacer"></div>
+  <button onclick="loadSampleConfirm()">Exemple</button>
+  <button onclick="importJSON()">Importa .json</button>
+  <button onclick="exportJSON()">Desa .json</button>
+  <button onclick="exportCSV()">CSV</button>
+  <button onclick="exportICS()">.ics</button>
+  <button onclick="window.print()">Imprimeix</button>
+  <input type="file" id="fileinput" accept=".json" style="display:none">
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="dades" class="active">Importa</button>
+  <button data-tab="assig">Assignatures</button>
+  <button data-tab="prof">Profes</button>
+  <button data-tab="aules">Aules</button>
+  <button data-tab="grups">Grups</button>
+  <button data-tab="disp">Disponibilitats</button>
+  <button data-tab="afin">Afinitats</button>
+  <button data-tab="restr">Restriccions</button>
+  <span class="navsep" title="A l'esquerra: dades que introdueixes i es desen automàticament. A la dreta: resultats que genera el programa.">→</span>
+  <button data-tab="solve">Resoldre</button>
+  <button data-tab="horari">Horari</button>
+  <button data-tab="cursos">Calendaris</button>
+  <button data-tab="metr">Mètriques</button>
+</nav>
+
+<main>
+  <!-- IMPORTA + GRAELLA TEMPORAL -->
+  <section class="tab active" id="tab-dades">
+    <details class="card import-card" open>
+      <summary><span class="n">↧</span> Importa des de Markdown o porta-retalls <span class="chev">▾</span></summary>
+      <div class="import-body">
+      <div class="hint">Enganxa text amb taules de <b>Professors</b>, <b>Assignatures</b>, <b>Grups</b> i/o <b>Afinitats</b>, o carrega un <code>.md</code>. El parser llegeix per nom de columna i tolera prosa entremig. Les <b>disponibilitats</b> es mantenen i s'enllacen pel nom. Pots generar el text amb una IA a partir de dades de la web: copia la plantilla de prompt.</div>
+      <textarea id="md-in" placeholder="## Assignatures&#10;| Nom | Escola | Curs | Hores | Bloc | Tipus |&#10;|-----|--------|------|-------|------|-------|&#10;| Optativa Fotografia | ETSAB | Optatives | 3 | 3 | Aula |&#10;&#10;## Professors&#10;| Nom | Càrrega (h) | Escoles |&#10;...&#10;&#10;## Grups&#10;| Nom | Escola | Curs | Mida | Assignatures |&#10;...&#10;&#10;## Afinitats&#10;| Professor | Assignatura | Nivell |&#10;..."></textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="primary" onclick="doImportMD('add')">Afegeix / actualitza</button>
+        <button onclick="doImportMD('replace')">Substitueix</button>
+        <button onclick="document.getElementById('mdfile').click()">Carrega .md…</button>
+        <button class="ghost" onclick="copyPrompt()">⧉ Copia plantilla de prompt</button>
+      </div>
+      <div id="md-msg" class="hint" style="margin:10px 0 0"></div>
+      <input type="file" id="mdfile" accept=".md,.markdown,.txt" style="display:none">
+      </div>
+    </details>
+    <div class="card"><h2><span class="n">T</span> Graella temporal</h2>
+      <div class="hint">Dies lectius, franges per dia, durada de la franja i hora d'inici. És la quadrícula on s'encaixen les sessions.</div>
+      <div id="t-time"></div>
+    </div>
+  </section>
+
+  <!-- CURSOS (assignatures) -->
+  <section class="tab" id="tab-assig">
+    <div class="card"><h2><span class="n">A</span> Cursos i assignatures</h2>
+      <div class="hint">Cada assignatura porta la seva <b>Escola</b> i el seu <b>Curs</b>, i es classifica per totes dues. El <b>Curs</b> és un camp obert: escriu-hi «1r», «Qm verd», «1A»… o una categoria com <b>Multicurs</b> o <b>Optatives</b> per a assignatures que no pertanyen a un sol curs. Hores i bloc en hores/setmana; el bloc és la durada mínima d'una sessió (els tallers volen blocs llargs). <b>Horari fix</b>: si direcció fixa dia i hora, afegeix-hi les fixacions (una per sessió) amb 📌 i el motor les respectarà.</div>
+      <div id="t-assig"></div>
+    </div>
+  </section>
+
+  <!-- PROFES -->
+  <section class="tab" id="tab-prof">
+    <div class="card"><h2><span class="n">P</span> Professors</h2>
+      <div class="hint">Càrrega màx. en hores/setmana i <b>escoles per prioritat</b> (1a forta … 3a feble): el motor assigna cada professor preferentment a la seva 1a escola. Estan separats per inicial del cognom. La disponibilitat i les afinitats es configuren a les seves pestanyes.</div>
+      <div class="tbl-actions tbl-top" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button onclick="addProf()">+ professor</button>
+        <input id="prof-q" type="search" placeholder="🔍 cerca per nom o cognom…" oninput="renderProf()" style="flex:1;min-width:160px">
+        <span id="prof-count" class="hint" style="margin:0"></span>
+      </div>
+      <div id="t-prof"></div>
+    </div>
+  </section>
+
+  <!-- AULES -->
+  <section class="tab" id="tab-aules">
+    <div class="card" id="aula-card"><h2><span class="n">R</span> Aules
+      <label class="switch" id="useAules-w" style="margin-left:auto" title="Gestionar aules"><input type="checkbox" id="useAules" onchange="S.useAules=this.checked;renderAll();renderTT();renderMetrics()"><span class="slider"></span></label>
+      <small style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">gestiona</small>
+    </h2>
+      <div class="hint">El tipus ha de coincidir amb el de l'assignatura; la capacitat, ser ≥ la mida del grup. <b>Desactiva-ho</b> si les aules les assigna direcció un cop fets els horaris: el motor ignorarà aules, capacitats i tipus.</div>
+      <div id="t-aula"></div>
+    </div>
+  </section>
+
+  <!-- GRUPS -->
+  <section class="tab" id="tab-grups">
+    <div class="card"><h2><span class="n">G</span> Grups</h2>
+      <div class="hint">Els grups s'organitzen per <b>escola</b> i <b>curs</b>. Posa l'escola i el curs del grup (camps oberts) i només es mostraran les assignatures d'aquell curs per assignar-les. Exemple: a 2n d'ETSAB, Representació Arquitectònica II amb 5 grups de matí i 4 de tarda, un grup per professor. Clica les assignatures per assignar-les o treure-les.</div>
+      <div id="t-grup"></div>
+    </div>
+  </section>
+
+  <!-- DISPONIBILITATS -->
+  <section class="tab" id="tab-disp">
+    <div class="card"><h2>Disponibilitat i preferència per professor</h2>
+      <div class="hint">Clica per alternar: <span class="tag av0" style="padding:1px 6px">no disponible</span> (dura) → <span class="tag av1" style="padding:1px 6px">disponible</span> → <span class="tag av2" style="padding:1px 6px">preferida</span>. Les hores no disponibles mai s'assignen; les preferides es premien.</div>
+      <div class="tt-bar"><label class="fld" style="display:flex;gap:8px;align-items:center"><span>Professor</span><select id="disp-sel" onchange="renderDisp()"></select></label>
+        <button onclick="fillDisp(1)">Tot disponible</button>
+        <button onclick="fillDisp(0)">Tot no disp.</button>
+      </div>
+      <div id="disp-matrix" class="matrix"></div>
+    </div>
+  </section>
+
+  <!-- AFINITATS -->
+  <section class="tab" id="tab-afin">
+    <div class="card"><h2>Matriu d'afinitat professor × assignatura</h2>
+      <div class="hint">Clica per pujar el nivell (0 → 3). <span class="tag a0" style="padding:1px 6px">0 no pot</span> <span class="tag a1" style="padding:1px 6px">1</span> <span class="tag a2" style="padding:1px 6px">2</span> <span class="tag a3" style="padding:1px 6px">3 idoni</span>. Només els professors amb afinitat &gt; 0 poden impartir l'assignatura; com més alta, més premiada. Els professors estan separats per inicial del cognom; filtra les assignatures (columnes) per escola i curs.</div>
+      <div class="tt-bar" style="flex-wrap:wrap">
+        <input id="afin-q" type="search" placeholder="🔍 cerca professor…" oninput="renderAfin()" style="min-width:150px">
+        <label class="fld" style="display:flex;gap:6px;align-items:center"><span>Escola</span><select id="afin-esc" onchange="renderAfin()"><option value="">Totes les escoles</option></select></label>
+        <label class="fld" style="display:flex;gap:6px;align-items:center"><span>Curs</span><select id="afin-curs" onchange="renderAfin()"><option value="">Tots els cursos</option></select></label>
+        <span id="afin-count" class="hint" style="margin:0"></span>
+      </div>
+      <div id="afin-matrix" class="matrix"></div>
+    </div>
+  </section>
+
+  <!-- RESTRICCIONS -->
+  <section class="tab" id="tab-restr">
+    <div class="row">
+      <div class="col"><div class="card"><h2>Restriccions dures</h2>
+        <div class="hint">Si estan actives, una solució que les violi es marca com a no factible. Pots desactivar-ne per relaxar el problema.</div>
+        <div id="hard-list"></div>
+      </div></div>
+      <div class="col"><div class="card"><h2>Desiderates (toves) i pesos</h2>
+        <div class="hint">Cada objectiu es minimitza segons el seu pes. Apuja el pes del que t'importi més per fer els compromisos a la teva manera.</div>
+        <div id="soft-list"></div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- RESOLDRE -->
+  <section class="tab" id="tab-solve">
+    <div class="card"><h2>Motor — recuit simulat amb reinicis</h2>
+      <div class="hint">Cerca combinatòria local: parteix d'una assignació factible i va provant moviments (canvi de franja, d'aula, de professor, intercanvis) acceptant-ne alguns de pitjors per escapar de mínims locals. Més iteracions i reinicis = millor resultat, més temps.</div>
+      <div class="solve-grid">
+        <div class="fld"><label>Iteracions / reinici</label><input type="number" id="p-iter" value="40000" min="1000" step="1000"></div>
+        <div class="fld"><label>Reinicis</label><input type="number" id="p-rest" value="6" min="1" max="50"></div>
+        <div class="fld"><label>Temp. inicial</label><input type="number" id="p-tmax" value="6" min="0.5" step="0.5"></div>
+        <div class="fld"><label>Temp. final</label><input type="number" id="p-tmin" value="0.02" min="0.001" step="0.01"></div>
+        <div class="fld"><label>Llavor</label><input type="number" id="p-seed" value="1"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px;align-items:center">
+        <button class="primary" id="btn-solve" onclick="runSolve()">▶ Resol</button>
+        <button id="btn-stop" onclick="stopSolve()" disabled>■ Atura</button>
+        <span id="solve-state" class="mono" style="color:var(--muted)"></span>
+      </div>
+      <div class="progress"><div id="prog"></div></div>
+      <div class="stat-row">
+        <div class="stat"><b id="s-obj">—</b><span>cost total</span></div>
+        <div class="stat"><b id="s-hard">—</b><span>violacions dures</span></div>
+        <div class="stat"><b id="s-soft">—</b><span>cost tou</span></div>
+        <div class="stat"><b id="s-feas">—</b><span>factible</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Re-resol des de la solució actual</h2>
+      <div class="hint">Parteix de l'horari que ja tens i el reajusta després d'un canvi (professors, afinitats o desiderates), buscant una solució <b>poc allunyada</b>. Reconcilia la solució amb les dades noves: conserva el que encara és vàlid i només repara el que el canvi ha trencat. <b>Ajust mínim</b> toca l'imprescindible; <b>Replanteja</b> reoptimitza lliurement partint d'aquí.</div>
+      <div style="display:flex;gap:10px;margin-top:12px;align-items:flex-end;flex-wrap:wrap">
+        <div class="fld"><label>Proximitat a l'anterior</label>
+          <select id="warm-mode">
+            <option value="45">Ajust mínim</option>
+            <option value="12" selected>Equilibrat</option>
+            <option value="0">Replanteja</option>
+          </select></div>
+        <button class="primary" id="btn-warm" onclick="runWarm()" disabled>↺ Re-resol des d'aquí</button>
+        <span id="warm-state" class="mono" style="color:var(--muted)"></span>
+      </div>
+      <div id="warm-diff" class="hint" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <!-- HORARI -->
+  <section class="tab printme" id="tab-horari">
+    <div class="card"><h2 class="no-print">Horari resultant</h2>
+      <div class="tt-bar no-print">
+        <label class="fld" style="display:flex;gap:8px;align-items:center"><span>Vista</span>
+          <select id="view-mode" onchange="renderTT()">
+            <option value="grup">Per grup</option>
+            <option value="prof">Per professor</option>
+            <option value="aula">Per aula</option>
+          </select></label>
+        <select id="view-ent" onchange="renderTT()"></select>
+        <span id="tt-warn" class="mono"></span>
+      </div>
+      <div id="tt-wrap" class="tt-wrap"></div>
+      <div id="tt-legend" class="legend"></div>
+    </div>
+  </section>
+
+  <!-- CURSOS -->
+  <section class="tab" id="tab-cursos">
+    <div class="card"><h2>Calendaris per curs</h2>
+      <div class="hint">Tots els cursos un sota l'altre. Filtra per escola i, si vols, per un curs concret. L'escola es dedueix del nom del curs (p. ex. «ETSAB 1r»).</div>
+      <div class="tt-bar">
+        <label class="fld" style="display:flex;gap:8px;align-items:center"><span>Escola</span>
+          <select id="cur-escola" onchange="renderCursos()">
+            <option value="">TOTS</option><option>ETSAB</option><option>ETSAV</option><option>EPSEB</option>
+          </select></label>
+        <label class="fld" style="display:flex;gap:8px;align-items:center"><span>Curs</span>
+          <select id="cur-curs" onchange="renderCursos()"><option value="">Tots els cursos</option></select></label>
+      </div>
+      <div id="cursos-wrap"></div>
+    </div>
+  </section>
+
+  <!-- METRIQUES -->
+  <section class="tab" id="tab-metr">
+    <div class="row">
+      <div class="col"><div class="card"><h2>Qualitat de la solució</h2><table class="mtable" id="m-quality"></table></div></div>
+      <div class="col"><div class="card"><h2>Càrrega per professor</h2><table class="mtable" id="m-load"></table></div></div>
+    </div>
+    <div class="card"><h2>Conflictes i avisos</h2><div id="m-warns" class="warnlist"></div></div>
+  </section>
+
+  <div class="foot">
+    <span class="sig">SBS BIM</span>
+    <span class="foot-sub">Guaita horaris · eina autocontinguda, offline · empaquetable amb Tauri/pake</span>
+  </div>
+</main>
+
+<script>
+"use strict";
+/* ───────────────────────── ESTAT ───────────────────────── */
+const TIPUS = ["Aula","Taller","Informàtica","Laboratori"];
+let S = blank();
+function blank(){return{
+  assig:[], prof:[], grup:[], aula:[],
+  time:{days:["Dilluns","Dimarts","Dimecres","Dijous","Divendres"],slotsPerDay:12,startHour:8.5,slotMin:60},
+  avail:{}, afin:{}, badSlots:[], useAules:true,
+  hard:{collProf:true,collGrup:true,collAula:true,disp:true,cap:true,tipus:true},
+  soft:{
+    pref:{on:true,w:3,name:"Hores preferides",desc:"premia les franges marcades com a preferides"},
+    afin:{on:true,w:4,name:"Afinitat assignatura",desc:"prioritza el professor més idoni"},
+    escola:{on:true,w:6,name:"Escola del professor",desc:"assigna el professor a la seva escola (1a prioritat, menys la 3a)"},
+    foratP:{on:true,w:5,name:"Forats del professor",desc:"minimitza hores mortes als horaris docents"},
+    foratG:{on:true,w:6,name:"Forats del grup",desc:"minimitza hores mortes als alumnes"},
+    compP:{on:false,w:2,name:"Compacta dies prof.",desc:"concentra la docència en menys dies"},
+    equil:{on:true,w:3,name:"Equilibri de càrrega",desc:"reparteix hores entre professors"},
+    disp2:{on:true,w:4,name:"Dispersa l'assignatura",desc:"evita repetir-la el mateix dia a un grup"},
+    bad:{on:false,w:3,name:"Evita franges dolentes",desc:"penalitza franges marcades globalment"}
+  },
+  sol:null
+};}
+const HARDW = 10000;
+let uid=1; const nid=p=>p+(uid++);
+
+/* ───────────────────────── HELPERS TEMPS ───────────────────────── */
+const T=()=>S.time;
+const totalSlots=()=>T().days.length*T().slotsPerDay;
+const dayOf=s=>Math.floor(s/T().slotsPerDay);
+const inDay=s=>s%T().slotsPerDay;
+function slotLabel(k){const h=T().startHour+k*T().slotMin/60;const hh=Math.floor(h);const mm=Math.round((h-hh)*60);return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");}
+const slotsPerHour=()=>60/T().slotMin;
+function validStarts(dur){const out=[];const spd=T().slotsPerDay;for(let s=0;s<totalSlots();s++){if(inDay(s)+dur<=spd)out.push(s);}return out;}
+const DAYABBR={dilluns:"Dl",dimarts:"Dt",dimecres:"Dc",dijous:"Dj",divendres:"Dv",dissabte:"Ds",diumenge:"Dg"};
+function dayAbbr(d){const n=(T().days[d]||"").toLowerCase();return DAYABBR[n]||(T().days[d]||"?").slice(0,2);}
+function fmtHora(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0");}
+function hourToSlot(h){return Math.max(0,Math.round((h-T().startHour)/(T().slotMin/60)));}
+function snapHour(h){return T().startHour+hourToSlot(h)*(T().slotMin/60);}
+
+/* ───────────────────────── MODEL ───────────────────────── */
+// instàncies: per (grup,assig) → professor + sessions[{dur,aula,start}]
+function buildModel(){
+  const sph=slotsPerHour();
+  const instances=[];
+  for(const g of S.grup){
+    for(const aId of (g.assig||[])){
+      const a=S.assig.find(x=>x.id===aId); if(!a)continue;
+      const blk=Math.max(1,Math.round(a.bloc*sph));
+      let rem=Math.round(a.hores*sph); const sess=[];
+      while(rem>0){const d=Math.min(blk,rem);sess.push({dur:d});rem-=d;}
+      instances.push({id:g.id+"·"+a.id, grup:g.id, assig:a.id, sessions:sess});
+    }
+  }
+  return {instances};
+}
+function candidates(assigId){return S.prof.filter(p=>(S.afin[p.id]?.[assigId]||0)>0).map(p=>p.id);}
+
+/* RNG reproduïble */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+function makeInitial(model,rnd){
+  const startCache={};const spd=T().slotsPerDay;
+  const sol={asgProf:{},sessions:[]};
+  for(const inst of model.instances){
+    const cand=candidates(inst.assig);
+    const prof=cand.length?cand[Math.floor(rnd()*cand.length)]:(S.prof[0]?.id||null);
+    sol.asgProf[inst.id]=prof;
+    const a=S.assig.find(x=>x.id===inst.assig);
+    const g=S.grup.find(x=>x.id===inst.grup);
+    let aulePool=[];
+    if(S.useAules!==false){const aules=S.aula.filter(r=>r.tipus===a.tipus && r.cap>=(g?.mida||0));aulePool=aules.length?aules:S.aula.slice();}
+    inst.sessions.forEach((se,i)=>{
+      const fx=(a.fix||[])[i];let start,fixed=false;
+      if(fx&&fx.d<T().days.length){let s=fx.d*spd+hourToSlot(fx.h);if(inDay(s)+se.dur>spd)s=fx.d*spd+Math.max(0,spd-se.dur);start=s;fixed=true;}
+      else{if(!startCache[se.dur])startCache[se.dur]=validStarts(se.dur);const vs=startCache[se.dur];start=vs.length?vs[Math.floor(rnd()*vs.length)]:0;}
+      const aula=(S.useAules!==false&&aulePool.length)?aulePool[Math.floor(rnd()*aulePool.length)].id:null;
+      sol.sessions.push({inst:inst.id,grup:inst.grup,assig:inst.assig,si:i,dur:se.dur,start,aula,fixed});
+    });
+  }
+  return sol;
+}
+
+/* ───────────────────────── AVALUACIÓ ───────────────────────── */
+function evaluate(model,sol){
+  const ts=totalSlots();
+  const profOcc={}, grupOcc={}, aulaOcc={};
+  const ensure=(m,k)=>{if(!m[k])m[k]=new Int16Array(ts);return m[k];};
+  const H=S.hard, SF=S.soft;
+  let hard=0; const hb={collProf:0,collGrup:0,collAula:0,disp:0,cap:0,tipus:0};
+  // ocupació + dures locals
+  const ua=S.useAules!==false;
+  for(const se of sol.sessions){
+    const prof=sol.asgProf[se.inst];
+    const a=S.assig.find(x=>x.id===se.assig);
+    const g=S.grup.find(x=>x.id===se.grup);
+    const r=ua?S.aula.find(x=>x.id===se.aula):null;
+    if(ua && H.cap && r && g && r.cap<g.mida)hb.cap+=se.dur;
+    if(ua && H.tipus && r && a && r.tipus!==a.tipus)hb.tipus+=se.dur;
+    for(let k=0;k<se.dur;k++){
+      const s=se.start+k;
+      if(prof){const po=ensure(profOcc,prof);po[s]++;
+        if(H.disp && (S.avail[prof]?.[s]??1)===0)hb.disp++;
+      }
+      if(g){ensure(grupOcc,se.grup)[s]++;}
+      if(ua && r){ensure(aulaOcc,se.aula)[s]++;}
+    }
+  }
+  const collisions=(m)=>{let c=0;for(const k in m){const arr=m[k];for(let i=0;i<arr.length;i++)if(arr[i]>1)c+=arr[i]-1;}return c;};
+  if(H.collProf)hb.collProf=collisions(profOcc);
+  if(H.collGrup)hb.collGrup=collisions(grupOcc);
+  if(ua && H.collAula)hb.collAula=collisions(aulaOcc);
+  hard=hb.collProf+hb.collGrup+hb.collAula+hb.disp+hb.cap+hb.tipus;
+
+  // toves
+  let soft=0; const sb={};
+  const add=(key,val)=>{const c=SF[key];if(c&&c.on){const p=c.w*val;sb[key]=p;soft+=p;}};
+  // pref franja
+  if(SF.pref.on){let v=0;for(const se of sol.sessions){const prof=sol.asgProf[se.inst];if(!prof)continue;for(let k=0;k<se.dur;k++){const av=S.avail[prof]?.[se.start+k]??1;if(av>=1)v+=(2-av);}}add("pref",v);}
+  // afinitat
+  if(SF.afin.on){let v=0;for(const inst of model.instances){const prof=sol.asgProf[inst.id];const af=S.afin[prof]?.[inst.assig]||0;v+=(3-af);}add("afin",v);}
+  // escola del professor (rang: 1a=0, 2a=1, 3a=2, fora de llista=3)
+  if(SF.escola&&SF.escola.on){const profEsc={};for(const p of S.prof)profEsc[p.id]=p.escoles||[];let v=0;
+    for(const inst of model.instances){const a=S.assig.find(x=>x.id===inst.assig);const E=a&&(a.escola||'').trim();if(!E)continue;
+      const list=profEsc[sol.asgProf[inst.id]]||[];const rank=list.indexOf(E);v+=rank<0?3:rank;}
+    add("escola",v);}
+  // forats prof
+  if(SF.foratP.on)add("foratP",gaps(profOcc));
+  // forats grup
+  if(SF.foratG.on)add("foratG",gaps(grupOcc));
+  // compacta dies prof
+  if(SF.compP.on){let v=0;for(const k in profOcc){const arr=profOcc[k];const dset=new Set();for(let s=0;s<arr.length;s++)if(arr[s]>0)dset.add(dayOf(s));v+=dset.size;}add("compP",v);}
+  // equilibri
+  if(SF.equil.on){const loads=[];for(const p of S.prof){const arr=profOcc[p.id];let h=0;if(arr)for(let s=0;s<arr.length;s++)if(arr[s]>0)h++;loads.push(h);}const mean=loads.reduce((a,b)=>a+b,0)/(loads.length||1);let v=0;for(const l of loads)v+=Math.abs(l-mean);add("equil",v);}
+  // dispersa: mateix (grup,assig) dos cops el mateix dia
+  if(SF.disp2.on){let v=0;const map={};for(const se of sol.sessions){const key=se.grup+"|"+se.assig+"|"+dayOf(se.start);map[key]=(map[key]||0)+1;}for(const k in map)if(map[k]>1)v+=map[k]-1;add("disp2",v);}
+  // franges dolentes
+  if(SF.bad.on && S.badSlots.length){const bad=new Set(S.badSlots);let v=0;for(const se of sol.sessions)for(let k=0;k<se.dur;k++)if(bad.has(se.start+k))v++;add("bad",v);}
+
+  const obj=HARDW*hard+soft;
+  return {obj,hard,soft,hb,sb,profOcc,grupOcc,aulaOcc};
+}
+function gaps(occ){let g=0;const spd=T().slotsPerDay;for(const k in occ){const arr=occ[k];for(let d=0;d<T().days.length;d++){let first=-1,last=-1,busy=0;for(let i=0;i<spd;i++){if(arr[d*spd+i]>0){if(first<0)first=i;last=i;busy++;}}if(first>=0)g+=(last-first+1)-busy;}}return g;}
+
+/* ───────────────────────── SOLVER (SA) ───────────────────────── */
+let solving=false, stopFlag=false;
+// índex i distància respecte una solució de referència (per al re-resol en calent)
+function indexRef(ref){const m={};for(const se of ref.sessions)m[se.inst+"#"+se.si]=se;return {sess:m,prof:ref.asgProf};}
+function solDiff(sol,idx){let d=0;
+  for(const se of sol.sessions){const r=idx.sess[se.inst+"#"+se.si];if(!r){d++;continue;}if(se.start!==r.start)d++;if((se.aula||null)!==(r.aula||null))d++;}
+  for(const inst in sol.asgProf){const rp=idx.prof[inst];if(rp!==undefined&&sol.asgProf[inst]!==rp)d++;}
+  return d;}
+function diffReport(sol,ref){const idx=indexRef(ref);let moved=0,aula=0,prof=0;
+  for(const se of sol.sessions){const r=idx.sess[se.inst+"#"+se.si];if(!r){moved++;continue;}if(se.start!==r.start)moved++;if((se.aula||null)!==(r.aula||null))aula++;}
+  for(const inst in sol.asgProf){const rp=idx.prof[inst];if(rp!==undefined&&sol.asgProf[inst]!==rp)prof++;}
+  return {moved,aula,prof,total:moved+aula+prof};}
+// reconcilia una solució antiga amb el model actual: conserva emplaçaments vàlids, repara la resta
+function seedFrom(model,ref,rnd){
+  const base=makeInitial(model,rnd);const spd=T().slotsPerDay;
+  const byInst={};for(const se of ref.sessions)byInst[se.inst+"#"+se.si]=se;
+  const aulaIds=new Set(S.aula.map(r=>r.id));
+  for(const se of base.sessions){const r=byInst[se.inst+"#"+se.si];if(!r)continue;
+    if(!se.fixed&&typeof r.start==='number'&&inDay(r.start)+se.dur<=spd)se.start=r.start;
+    if(S.useAules!==false&&r.aula&&aulaIds.has(r.aula))se.aula=r.aula;}
+  for(const inst of model.instances){const rp=ref.asgProf[inst.id];if(rp!=null){const cand=candidates(inst.assig);if(cand.includes(rp))base.asgProf[inst.id]=rp;}}
+  return base;
+}
+function solve(model,params,onProgress,onDone){
+  let best=null,bestE=Infinity;
+  const startCache={};
+  const validFor=d=>{if(!startCache[d])startCache[d]=validStarts(d);return startCache[d];};
+  const refIdx=(params.ref&&params.distW>0)?indexRef(params.ref):null;
+  const dpen=refIdx?(s=>params.distW*solDiff(s,refIdx)):null;
+  let restart=0;
+  function nextRestart(){
+    if(stopFlag||restart>=params.restarts){onDone(best,bestE);return;}
+    const rnd=mulberry32((params.seed|0)+restart*7919);
+    let cur=(restart===0&&params.seedSol)?seedFrom(model,params.seedSol,rnd):makeInitial(model,rnd);
+    let curE=evaluate(model,cur).obj+(dpen?dpen(cur):0);
+    if(curE<bestE){bestE=curE;best=clone(cur);}
+    const total=params.iter; let it=0;
+    const Tmax=params.tmax,Tmin=params.tmin;
+    function chunk(){
+      const end=Math.min(it+1500,total);
+      for(;it<end;it++){
+        const tt=Tmax*Math.pow(Tmin/Tmax,it/total);
+        const undo=mutate(cur,model,rnd,validFor);
+        if(!undo)continue;
+        const e=evaluate(model,cur).obj+(dpen?dpen(cur):0);
+        const d=e-curE;
+        if(d<=0||rnd()<Math.exp(-d/tt)){curE=e;if(e<bestE){bestE=e;best=clone(cur);}}
+        else undo();
+      }
+      const frac=(restart+it/total)/params.restarts;
+      onProgress(frac,bestE,best);
+      if(it<total&&!stopFlag)setTimeout(chunk,0);
+      else{restart++;setTimeout(nextRestart,0);}
+    }
+    chunk();
+  }
+  nextRestart();
+}
+function mutate(sol,model,rnd,validFor){
+  const sess=sol.sessions; if(!sess.length)return null;
+  const r=rnd();
+  if(r<0.45){ // mou franja
+    const i=Math.floor(rnd()*sess.length),se=sess[i];
+    if(se.fixed)return null;
+    const vs=validFor(se.dur);const old=se.start;se.start=vs[Math.floor(rnd()*vs.length)];
+    return()=>{se.start=old;};
+  }else if(r<0.7){ // canvia aula
+    if(S.useAules===false)return null;
+    const i=Math.floor(rnd()*sess.length),se=sess[i];
+    const a=S.assig.find(x=>x.id===se.assig),g=S.grup.find(x=>x.id===se.grup);
+    let pool=S.aula.filter(x=>x.tipus===a.tipus&&x.cap>=(g?.mida||0));
+    if(!pool.length)pool=S.aula; if(!pool.length)return null;
+    const old=se.aula;se.aula=pool[Math.floor(rnd()*pool.length)].id;
+    return()=>{se.aula=old;};
+  }else if(r<0.85){ // intercanvia franges de dues sessions
+    const i=Math.floor(rnd()*sess.length),j=Math.floor(rnd()*sess.length);
+    if(i===j)return null;const A=sess[i],B=sess[j];
+    if(A.fixed||B.fixed)return null;
+    if(inDay(A.start)+B.dur>T().slotsPerDay||inDay(B.start)+A.dur>T().slotsPerDay)return null;
+    const a=A.start,b=B.start;A.start=b;B.start=a;
+    return()=>{A.start=a;B.start=b;};
+  }else{ // canvia professor d'una instància
+    const inst=model.instances[Math.floor(rnd()*model.instances.length)];
+    const cand=candidates(inst.assig);if(cand.length<2)return null;
+    const old=sol.asgProf[inst.id];sol.asgProf[inst.id]=cand[Math.floor(rnd()*cand.length)];
+    return()=>{sol.asgProf[inst.id]=old;};
+  }
+}
+const clone=o=>({asgProf:{...o.asgProf},sessions:o.sessions.map(s=>({...s}))});
+
+/* ───────────────────────── UI: TAULES EDITABLES ───────────────────────── */
+function genericTable(host,rows,cols,onAdd,addLabel){
+  let h='<div class="tbl-actions tbl-top"><button onclick="'+onAdd+'">+ '+addLabel+'</button></div>';
+  h+='<table class="data"><thead><tr>';
+  cols.forEach(c=>h+=`<th style="${c.w?'width:'+c.w:''}">${c.t}</th>`);h+='<th></th></tr></thead><tbody>';
+  rows.forEach((r,ri)=>{h+='<tr>';cols.forEach(c=>h+=`<td>${c.cell(r,ri)}</td>`);
+    h+=`<td><button class="del" data-del="${ri}">×</button></td></tr>`;});
+  h+='</tbody></table>';
+  host.innerHTML=h;
+  host.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{rows.splice(+b.dataset.del,1);renderAll();});
+}
+function bind(arr,ri,key,el,num){el.onchange=()=>{arr[ri][key]=num?(parseFloat(el.value)||0):el.value;renderAll();};}
+
+function renderTables(){
+  // Assignatures (agrupades per curs)
+  renderAssig();
+  // Professors (agrupats per inicial del cognom, amb cerca)
+  renderProf();
+  // Aules
+  genericTable(document.getElementById('t-aula'),S.aula,[
+    {t:"Nom",cell:(r,i)=>`<input value="${esc(r.nom)}" oninput="S.aula[${i}].nom=this.value">`},
+    {t:"Capacitat",w:"90px",cell:(r,i)=>`<input type="number" value="${r.cap}" oninput="S.aula[${i}].cap=parseInt(this.value)||0">`},
+    {t:"Tipus",w:"120px",cell:(r,i)=>selOpts(TIPUS,r.tipus,`S.aula[${i}].tipus=this.value`)},
+  ],'addAula()','aula');
+  // Grups (agrupats per escola → curs)
+  renderGrups();
+  // Temps
+  const th=document.getElementById('t-time');
+  th.innerHTML=`<div class="solve-grid">
+    <div class="fld"><label>Dies (separats per coma)</label><input value="${T().days.join(', ')}" onchange="setDays(this.value)"></div>
+    <div class="fld"><label>Hores/dia (slots)</label><input type="number" value="${T().slotsPerDay}" onchange="T().slotsPerDay=parseInt(this.value)||1;renderAll()"></div>
+    <div class="fld"><label>Hora inici (8.5 = 08:30)</label><input type="number" step="0.5" value="${T().startHour}" onchange="T().startHour=parseFloat(this.value)||0;renderAll()"></div>
+    <div class="fld"><label>Minuts/slot</label><input type="number" step="15" value="${T().slotMin}" onchange="T().slotMin=parseInt(this.value)||60;renderAll()"></div>
+  </div>`;
+  const ua=document.getElementById('useAules');if(ua)ua.checked=S.useAules!==false;
+  const ac=document.getElementById('aula-card');if(ac)ac.classList.toggle('off',S.useAules===false);
+}
+function fixCell(r,i){
+  const chips=(r.fix||[]).map((f,fi)=>`<span class="chip on" title="treure" onclick="delFix(${i},${fi})">${dayAbbr(f.d)} ${fmtHora(f.h)} ×</span>`).join('');
+  const dsel=`<select id="fixd-${i}" style="width:auto"><option value="">dia…</option>`+T().days.map((d,di)=>`<option value="${di}">${dayAbbr(di)}</option>`).join('')+`</select>`;
+  const hin=`<input id="fixh-${i}" type="number" step="0.5" placeholder="h" style="width:62px">`;
+  return `<div class="chips fixcell">${chips}${dsel}${hin}<button class="pin" onclick="addFix(${i})" title="fixar">📌</button></div>`;
+}
+function addFix(i){const dv=document.getElementById('fixd-'+i).value;if(dv==="")return;
+  const hv=document.getElementById('fixh-'+i).value;const hr=snapHour(parseFloat(hv)||T().startHour);
+  S.assig[i].fix=S.assig[i].fix||[];S.assig[i].fix.push({d:+dv,h:hr});renderAll();persistSoon();}
+function delFix(i,fi){S.assig[i].fix.splice(fi,1);renderAll();persistSoon();}
+function renderAssig(){
+  const host=document.getElementById('t-assig');
+  const cols=[
+    {t:"Escola",w:"96px",cell:(r,i)=>`<input list="escolalist" value="${esc(r.escola||'')}" placeholder="oberta" oninput="S.assig[${i}].escola=this.value" onchange="renderAll()">`},
+    {t:"Curs",w:"130px",cell:(r,i)=>`<input list="curslist" value="${esc(r.curs||'')}" placeholder="obert / Multicurs" oninput="S.assig[${i}].curs=this.value" onchange="renderAll()">`},
+    {t:"Assignatura",cell:(r,i)=>`<input value="${esc(r.nom)}" oninput="S.assig[${i}].nom=this.value">`},
+    {t:"Hores",w:"60px",cell:(r,i)=>`<input type="number" step="0.5" value="${r.hores}" oninput="S.assig[${i}].hores=parseFloat(this.value)||0">`},
+    {t:"Bloc",w:"56px",cell:(r,i)=>`<input type="number" step="0.5" value="${r.bloc}" oninput="S.assig[${i}].bloc=parseFloat(this.value)||0">`},
+    {t:"Tipus",w:"114px",cell:(r,i)=>selOpts(TIPUS,r.tipus,`S.assig[${i}].tipus=this.value;renderAll()`)},
+    {t:"Color",w:"44px",cell:(r,i)=>`<input type="color" value="${r.color}" oninput="S.assig[${i}].color=this.value;renderTT()" style="padding:0;height:28px">`},
+    {t:"Horari fix (dia · hora)",cell:(r,i)=>fixCell(r,i)},
+  ];
+  const curses=[...new Set(S.assig.map(a=>(a.curs||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ca'));
+  const sugg=[...new Set([...curses,"Multicurs","Optatives"])];
+  const ORD=["ETSAB","ETSAV","EPSEB"];
+  const escoles=[...new Set(S.assig.map(a=>(a.escola||'').trim()))].sort((a,b)=>{const ia=ORD.indexOf(a),ib=ORD.indexOf(b);return (ia<0?9:ia)-(ib<0?9:ib)||a.localeCompare(b,'ca');});
+  let h=escolaDatalist()+'<datalist id="curslist">'+sugg.map(c=>`<option value="${esc(c)}">`).join('')+'</datalist>';
+  h+='<div class="tbl-actions tbl-top"><button onclick="addAssig()">+ assignatura</button></div>';
+  h+='<table class="data"><thead><tr>'+cols.map(c=>`<th style="${c.w?'width:'+c.w:''}">${c.t}</th>`).join('')+'<th></th></tr></thead><tbody>';
+  let any=false;
+  escoles.forEach(es=>{
+    const inEs=S.assig.map((a,i)=>({a,i})).filter(x=>((x.a.escola||'').trim())===es);
+    if(!inEs.length)return;
+    h+=`<tr class="esc-h"><td colspan="${cols.length+1}">${es?esc(es):'(sense escola)'}</td></tr>`;
+    const cs=[...new Set(inEs.map(x=>(x.a.curs||'').trim()))].sort((a,b)=>a.localeCompare(b,'ca'));
+    cs.forEach(cu=>{
+      const rows=inEs.filter(x=>((x.a.curs||'').trim())===cu);
+      if(!rows.length)return;
+      h+=`<tr class="grp-h"><td colspan="${cols.length+1}">${cu?esc(cu):'(sense curs)'} · ${rows.length}</td></tr>`;
+      rows.forEach(({a,i})=>{h+='<tr>'+cols.map(c=>`<td>${c.cell(a,i)}</td>`).join('')+`<td><button class="del" data-del="${i}">×</button></td></tr>`;any=true;});
+    });
+  });
+  if(!any)h+=`<tr><td colspan="${cols.length+1}" style="color:var(--muted);padding:10px">Cap assignatura. Afegeix-ne o importa.</td></tr>`;
+  h+='</tbody></table>';
+  host.innerHTML=h;
+  host.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{S.assig.splice(+b.dataset.del,1);renderAll();});
+}
+function allEscoles(){const s=new Set(["ETSAB","ETSAV","EPSEB"]);
+  S.assig.forEach(a=>{const e=(a.escola||'').trim();if(e)s.add(e);});
+  S.prof.forEach(p=>(p.escoles||[]).forEach(e=>{if(e)s.add(e);}));
+  S.grup.forEach(g=>{const e=(g.escola||'').trim();if(e)s.add(e);});
+  const ORD=["ETSAB","ETSAV","EPSEB"];
+  return [...s].sort((a,b)=>{const ia=ORD.indexOf(a),ib=ORD.indexOf(b);return (ia<0?9:ia)-(ib<0?9:ib)||a.localeCompare(b,'ca');});}
+function escolaDatalist(){return '<datalist id="escolalist">'+allEscoles().map(e=>`<option value="${esc(e)}">`).join('')+'</datalist>';}
+function cognom(nom){const w=(nom||'').trim().split(/\s+/);return (w.length>1?w.slice(1).join(' '):(w[0]||''));}
+function inicial(nom){const c=cognom(nom).trim();return c?c[0].toUpperCase():'#';}
+function renderProf(){
+  const host=document.getElementById('t-prof');if(!host)return;
+  const q=norm((document.getElementById('prof-q')?.value)||'');
+  const rows=S.prof.map((r,i)=>({r,i})).filter(x=>!q||norm(x.r.nom).includes(q));
+  rows.sort((a,b)=>cognom(a.r.nom).localeCompare(cognom(b.r.nom),'ca')||a.r.nom.localeCompare(b.r.nom,'ca'));
+  const cols=[
+    {t:"Nom",cell:(r,i)=>`<input value="${esc(r.nom)}" oninput="S.prof[${i}].nom=this.value">`},
+    {t:"Càrrega (h)",w:"86px",cell:(r,i)=>`<input type="number" value="${r.carrega}" oninput="S.prof[${i}].carrega=parseFloat(this.value)||0">`},
+    {t:"Escoles (1a · 2a · 3a)",cell:(r,i)=>escolesCell(r,i)},
+  ];
+  let h=escolaDatalist();
+  h+='<table class="data"><thead><tr>'+cols.map(c=>`<th style="${c.w?'width:'+c.w:''}">${c.t}</th>`).join('')+'<th></th></tr></thead><tbody>';
+  if(!rows.length)h+=`<tr><td colspan="${cols.length+1}" style="color:var(--muted);padding:10px">${S.prof.length?'Cap professor coincideix amb la cerca.':'Cap professor. Afegeix-ne o importa.'}</td></tr>`;
+  let cur=null;
+  for(const {r,i} of rows){const ini=inicial(r.nom);
+    if(ini!==cur){cur=ini;h+=`<tr class="grp-h"><td colspan="${cols.length+1}">${esc(ini)}</td></tr>`;}
+    h+='<tr>'+cols.map(c=>`<td>${c.cell(r,i)}</td>`).join('')+`<td><button class="del" data-del="${i}">×</button></td></tr>`;}
+  h+='</tbody></table>';host.innerHTML=h;
+  host.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{S.prof.splice(+b.dataset.del,1);renderAll();});
+  const cc=document.getElementById('prof-count');if(cc)cc.textContent=q?`${rows.length} / ${S.prof.length}`:`${S.prof.length} professors`;
+}
+function escolesCell(r,i){
+  const cur=r.escoles||[];const lab=["1a","2a","3a"];
+  const inp=pos=>`<input list="escolalist" value="${esc(cur[pos]||'')}" placeholder="${lab[pos]}" onchange="setEscola(${i},${pos},this.value)" style="width:66px;padding:3px 5px">`;
+  return `<div style="display:flex;gap:3px">${inp(0)}${inp(1)}${inp(2)}</div>`;
+}
+function setEscola(i,pos,val){const e=(S.prof[i].escoles||[]).slice();while(e.length<3)e.push('');e[pos]=val.trim();const out=[];for(const x of e)if(x&&!out.includes(x))out.push(x);S.prof[i].escoles=out;renderTables();persistSoon();}
+const esc=s=>(s||"").replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const selOpts=(opts,val,js)=>`<select onchange="${js}">`+opts.map(o=>`<option ${o===val?'selected':''}>${o}</option>`).join('')+`</select>`;
+
+function setDays(v){T().days=v.split(',').map(x=>x.trim()).filter(Boolean);renderAll();}
+function toggleGrupAssig(i,aId){const g=S.grup[i];g.assig=g.assig||[];const k=g.assig.indexOf(aId);if(k<0)g.assig.push(aId);else g.assig.splice(k,1);renderTables();}
+function nextName(arr,base){let mx=0;const re=new RegExp('^'+base.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s+(\\d+)$');(arr||[]).forEach(o=>{const m=re.exec((o&&o.nom)||'');if(m)mx=Math.max(mx,+m[1]);});return base+' '+String(mx+1).padStart(2,'0');}
+function addAssig(){S.assig.push({id:nid('a'),nom:nextName(S.assig,'Assignatura'),escola:"",curs:"",hores:2,bloc:2,tipus:"Aula",color:randColor()});renderAll();}
+function addProf(){const id=nid('p');S.prof.push({id,nom:nextName(S.prof,'Professor'),carrega:20,escoles:[]});S.avail[id]={};S.afin[id]={};renderAll();}
+function addAula(){S.aula.push({id:nid('r'),nom:nextName(S.aula,'Nova Aula'),cap:30,tipus:"Aula"});renderAll();}
+function addGrup(){S.grup.push({id:nid('g'),nom:nextName(S.grup,'Grup'),mida:30,assig:[],escola:"",curs:""});renderAll();}
+function assigChips(g,i){const ge=(g.escola||'').trim(),gc=(g.curs||'').trim();
+  const pool=S.assig.filter(a=>{const on=(g.assig||[]).includes(a.id);if(on)return true;if(ge&&(a.escola||'').trim()!==ge)return false;if(gc&&(a.curs||'').trim()!==gc)return false;return true;});
+  if(!pool.length)return '<span class="hint" style="margin:0">cap assignatura d\'aquesta escola/curs — ajusta Escola/Curs o crea-les</span>';
+  return pool.map(a=>`<span class="chip ${(g.assig||[]).includes(a.id)?'on':''}" onclick="toggleGrupAssig(${i},'${a.id}')">${esc(a.nom)}</span>`).join('');
+}
+function renderGrups(){
+  const gh=document.getElementById('t-grup');if(!gh)return;
+  const curs2=[...new Set(S.assig.map(a=>(a.curs||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ca'));
+  let h=escolaDatalist()+'<datalist id="curslist2">'+curs2.map(c=>`<option value="${esc(c)}">`).join('')+'</datalist>';
+  h+='<div class="tbl-actions tbl-top"><button onclick="addGrup()">+ grup</button></div>';
+  h+='<table class="data"><thead><tr><th style="width:96px">Escola</th><th style="width:120px">Curs</th><th>Nom</th><th style="width:64px">Mida</th><th>Assignatures</th><th></th></tr></thead><tbody>';
+  const ORD=["ETSAB","ETSAV","EPSEB"];
+  const escoles=[...new Set(S.grup.map(g=>(g.escola||'').trim()))].sort((a,b)=>{const ia=ORD.indexOf(a),ib=ORD.indexOf(b);return (ia<0?9:ia)-(ib<0?9:ib)||a.localeCompare(b,'ca');});
+  let any=false;
+  escoles.forEach(es=>{
+    const inEs=S.grup.map((g,i)=>({g,i})).filter(x=>((x.g.escola||'').trim())===es);
+    if(!inEs.length)return;
+    h+=`<tr class="esc-h"><td colspan="6">${es?esc(es):'(sense escola)'}</td></tr>`;
+    const cs=[...new Set(inEs.map(x=>(x.g.curs||'').trim()))].sort((a,b)=>a.localeCompare(b,'ca'));
+    cs.forEach(cu=>{
+      const rows=inEs.filter(x=>((x.g.curs||'').trim())===cu);if(!rows.length)return;
+      h+=`<tr class="grp-h"><td colspan="6">${cu?esc(cu):'(sense curs)'} · ${rows.length} grup(s)</td></tr>`;
+      rows.forEach(({g,i})=>{
+        h+='<tr>';
+        h+=`<td><input list="escolalist" value="${esc(g.escola||'')}" placeholder="oberta" oninput="S.grup[${i}].escola=this.value" onchange="renderAll()"></td>`;
+        h+=`<td><input list="curslist2" value="${esc(g.curs||'')}" placeholder="obert" oninput="S.grup[${i}].curs=this.value" onchange="renderAll()"></td>`;
+        h+=`<td><input value="${esc(g.nom)}" oninput="S.grup[${i}].nom=this.value"></td>`;
+        h+=`<td><input type="number" value="${g.mida}" oninput="S.grup[${i}].mida=parseInt(this.value)||0"></td>`;
+        h+=`<td><div class="chips">`+assigChips(g,i)+`</div></td>`;
+        h+=`<td><button class="del" onclick="S.grup.splice(${i},1);renderAll()">×</button></td></tr>`;
+        any=true;
+      });
+    });
+  });
+  if(!any)h+=`<tr><td colspan="6" style="color:var(--muted);padding:10px">Cap grup. Afegeix-ne o importa.</td></tr>`;
+  h+='</tbody></table>';gh.innerHTML=h;
+}
+function randColor(){const h=Math.floor(Math.random()*360);return hsl2hex(h,55,45);}
+function hsl2hex(h,s,l){s/=100;l/=100;const k=n=>(n+h/30)%12;const a=s*Math.min(l,1-l);const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));const t=x=>Math.round(255*x).toString(16).padStart(2,'0');return'#'+t(f(0))+t(f(8))+t(f(4));}
+
+/* ───────────────────────── DISPONIBILITATS ───────────────────────── */
+function renderDispSel(){const sel=document.getElementById('disp-sel');const cur=sel.value;sel.innerHTML=S.prof.map(p=>`<option value="${p.id}">${esc(p.nom)}</option>`).join('');if(cur&&S.prof.find(p=>p.id===cur))sel.value=cur;}
+function renderDisp(){
+  const pid=document.getElementById('disp-sel').value;const host=document.getElementById('disp-matrix');
+  if(!pid){host.innerHTML='<div class="hint" style="padding:14px">Afegeix professors.</div>';return;}
+  S.avail[pid]=S.avail[pid]||{};
+  let h='<table><thead><tr><th>Hora</th>'+T().days.map(d=>`<th>${d}</th>`).join('')+'</tr></thead><tbody>';
+  for(let i=0;i<T().slotsPerDay;i++){
+    h+=`<tr><th>${slotLabel(i)}</th>`;
+    for(let d=0;d<T().days.length;d++){const s=d*T().slotsPerDay+i;const v=S.avail[pid][s]??1;
+      const cl=v===0?'av0':v===2?'av2':'av1';const t=v===0?'·':v===2?'★':'';
+      h+=`<td class="cell ${cl}" onclick="cycleAvail('${pid}',${s})">${t}</td>`;}
+    h+='</tr>';
+  }
+  host.innerHTML=h+'</tbody></table>';
+}
+function cycleAvail(pid,s){S.avail[pid]=S.avail[pid]||{};const v=S.avail[pid][s]??1;S.avail[pid][s]=v===1?2:v===2?0:1;renderDisp();persistSoon();}
+function fillDisp(v){const pid=document.getElementById('disp-sel').value;if(!pid)return;S.avail[pid]=S.avail[pid]||{};for(let s=0;s<totalSlots();s++)S.avail[pid][s]=v;renderDisp();}
+
+/* ───────────────────────── AFINITATS ───────────────────────── */
+function renderAfin(){
+  const host=document.getElementById('afin-matrix');if(!host)return;
+  if(!S.prof.length||!S.assig.length){host.innerHTML='<div class="hint" style="padding:14px">Cal tenir professors i assignatures.</div>';return;}
+  const ORD=["ETSAB","ETSAV","EPSEB"];
+  // filtres d'assignatura (columnes)
+  const escSel=document.getElementById('afin-esc');const pe=escSel.value;
+  const escList=[...new Set(S.assig.map(a=>(a.escola||'').trim()).filter(Boolean))].sort((a,b)=>{const ia=ORD.indexOf(a),ib=ORD.indexOf(b);return (ia<0?9:ia)-(ib<0?9:ib)||a.localeCompare(b,'ca');});
+  escSel.innerHTML='<option value="">Totes les escoles</option>'+escList.map(e=>`<option value="${esc(e)}">${esc(e)}</option>`).join('');
+  if(pe&&escList.includes(pe))escSel.value=pe;else escSel.value='';
+  const fEsc=escSel.value;
+  const curSel=document.getElementById('afin-curs');const pc=curSel.value;
+  const curList=[...new Set(S.assig.filter(a=>!fEsc||(a.escola||'').trim()===fEsc).map(a=>(a.curs||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ca'));
+  curSel.innerHTML='<option value="">Tots els cursos</option>'+curList.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if(pc&&curList.includes(pc))curSel.value=pc;else curSel.value='';
+  const fCurs=curSel.value;
+  const cols=S.assig.filter(a=>(!fEsc||(a.escola||'').trim()===fEsc)&&(!fCurs||(a.curs||'').trim()===fCurs));
+  // filtre + ordenació de professors (files)
+  const q=norm((document.getElementById('afin-q')?.value)||'');
+  const rows=S.prof.filter(p=>!q||norm(p.nom).includes(q)).sort((a,b)=>cognom(a.nom).localeCompare(cognom(b.nom),'ca')||a.nom.localeCompare(b.nom,'ca'));
+  const cc=document.getElementById('afin-count');if(cc)cc.textContent=`${rows.length} prof · ${cols.length} assig`;
+  if(!cols.length){host.innerHTML='<div class="hint" style="padding:14px">Cap assignatura per a aquest filtre.</div>';return;}
+  if(!rows.length){host.innerHTML='<div class="hint" style="padding:14px">Cap professor coincideix amb la cerca.</div>';return;}
+  let h='<table><thead><tr><th>Professor \\ Assignatura</th>'+cols.map(a=>`<th title="${esc(a.nom)}">${esc(a.nom)}</th>`).join('')+'</tr></thead><tbody>';
+  let cur=null;
+  for(const p of rows){S.afin[p.id]=S.afin[p.id]||{};
+    const ini=inicial(p.nom);
+    if(ini!==cur){cur=ini;h+=`<tr><th class="afin-sep" colspan="${cols.length+1}">${esc(ini)}</th></tr>`;}
+    h+=`<tr><th title="${esc(p.nom)}">${esc(p.nom)}</th>`;
+    for(const a of cols){const v=S.afin[p.id][a.id]||0;h+=`<td class="cell a${v}" onclick="cycleAfin('${p.id}','${a.id}')">${v||''}</td>`;}
+    h+='</tr>';
+  }
+  host.innerHTML=h+'</tbody></table>';
+}
+function cycleAfin(pid,aid){S.afin[pid]=S.afin[pid]||{};S.afin[pid][aid]=((S.afin[pid][aid]||0)+1)%4;renderAfin();persistSoon();}
+
+/* ───────────────────────── RESTRICCIONS ───────────────────────── */
+const HARDLBL={collProf:["Professor sense solapaments","un docent no pot fer dues classes alhora"],
+  collGrup:["Grup sense solapaments","un grup no pot tenir dues assignatures alhora"],
+  collAula:["Aula sense solapaments","una aula no pot acollir dues classes alhora"],
+  disp:["Respecta indisponibilitats","no assignar hores marcades com a no disponibles"],
+  cap:["Capacitat suficient","l'aula ha de cabre el grup"],
+  tipus:["Tipus d'aula correcte","l'aula ha de ser del tipus de l'assignatura"]};
+function renderRestr(){
+  const hl=document.getElementById('hard-list');
+  hl.innerHTML=Object.keys(S.hard).map(k=>`<div class="ctrl">
+    <label class="switch"><input type="checkbox" ${S.hard[k]?'checked':''} onchange="S.hard['${k}']=this.checked"><span class="slider"></span></label>
+    <div class="name">${HARDLBL[k][0]}<small>${HARDLBL[k][1]}</small></div><div></div><div></div></div>`).join('');
+  const sl=document.getElementById('soft-list');
+  sl.innerHTML=Object.keys(S.soft).map(k=>{const c=S.soft[k];return`<div class="ctrl">
+    <label class="switch"><input type="checkbox" ${c.on?'checked':''} onchange="S.soft['${k}'].on=this.checked"><span class="slider"></span></label>
+    <div class="name">${c.name}<small>${c.desc}</small></div>
+    <div class="wval" id="wv-${k}">${c.w}</div>
+    <input type="range" min="0" max="20" step="1" value="${c.w}" oninput="S.soft['${k}'].w=parseInt(this.value);document.getElementById('wv-${k}').textContent=this.value">
+  </div>`;}).join('');
+}
+
+/* ───────────────────────── SOLVER UI ───────────────────────── */
+function runSolve(){
+  if(solving)return;
+  if(!S.grup.length||!S.assig.length){alert("Cal almenys una assignatura i un grup.");return;}
+  const model=buildModel();
+  if(!model.instances.length){alert("Cap grup té assignatures assignades.");return;}
+  const params={iter:+document.getElementById('p-iter').value,restarts:+document.getElementById('p-rest').value,
+    tmax:+document.getElementById('p-tmax').value,tmin:+document.getElementById('p-tmin').value,seed:+document.getElementById('p-seed').value};
+  solving=true;stopFlag=false;
+  document.getElementById('btn-solve').disabled=true;document.getElementById('btn-stop').disabled=false;
+  document.getElementById('solve-state').textContent="cercant…";
+  const t0=performance.now();
+  solve(model,params,(frac,bestE,best)=>{
+    document.getElementById('prog').style.width=Math.min(100,frac*100)+'%';
+    const ev=evaluate(model,best);
+    setStats(ev);
+  },(best,bestE)=>{
+    solving=false;document.getElementById('btn-solve').disabled=false;document.getElementById('btn-stop').disabled=true;
+    document.getElementById('prog').style.width='100%';
+    S.sol=best;const ev=evaluate(model,best);setStats(ev);persist();
+    document.getElementById('solve-state').textContent=`fet en ${((performance.now()-t0)/1000).toFixed(1)}s`;
+    document.getElementById('btn-warm').disabled=false;
+    renderTT();renderMetrics();renderCursos();
+    document.querySelector('[data-tab=horari]').click();
+  });
+}
+function stopSolve(){stopFlag=true;document.getElementById('solve-state').textContent="aturant…";document.getElementById('warm-state').textContent="";}
+function runWarm(){
+  if(solving)return;
+  if(!S.sol){alert("Primer cal una solució: prem ▶ Resol.");return;}
+  const model=buildModel();
+  if(!model.instances.length){alert("Cap grup té assignatures assignades.");return;}
+  const ref=clone(S.sol);
+  const distW=+document.getElementById('warm-mode').value;
+  const iter=Math.max(8000,Math.round(model.instances.length*1200));
+  const params={iter,restarts:1,tmax:distW>0?0.8:2.5,tmin:0.01,seed:(Date.now()&0xffff),seedSol:ref,ref,distW};
+  solving=true;stopFlag=false;
+  document.getElementById('btn-solve').disabled=true;document.getElementById('btn-warm').disabled=true;document.getElementById('btn-stop').disabled=false;
+  document.getElementById('prog').style.width='0%';
+  document.getElementById('warm-state').textContent="reajustant…";document.getElementById('warm-diff').textContent="";
+  const t0=performance.now();
+  solve(model,params,(frac,bestE,best)=>{
+    document.getElementById('prog').style.width=Math.min(100,frac*100)+'%';
+    setStats(evaluate(model,best));
+  },(best)=>{
+    solving=false;document.getElementById('btn-solve').disabled=false;document.getElementById('btn-warm').disabled=false;document.getElementById('btn-stop').disabled=true;
+    document.getElementById('prog').style.width='100%';
+    S.sol=best;const ev=evaluate(model,best);setStats(ev);persist();
+    const dr=diffReport(best,ref);
+    document.getElementById('warm-state').textContent=`fet en ${((performance.now()-t0)/1000).toFixed(1)}s`;
+    document.getElementById('warm-diff').innerHTML=dr.total
+      ? `Respecte l'anterior: <b>${dr.moved}</b> sessions mogudes · <b>${dr.aula}</b> canvis d'aula · <b>${dr.prof}</b> professors reassignats.`
+      : `Cap canvi respecte l'anterior (ja era òptim per a les dades noves).`;
+    renderTT();renderMetrics();renderCursos();
+    document.querySelector('[data-tab=horari]').click();
+  });
+}
+function setStats(ev){
+  document.getElementById('s-obj').textContent=Math.round(ev.obj).toLocaleString('ca');
+  document.getElementById('s-hard').textContent=ev.hard;
+  document.getElementById('s-soft').textContent=Math.round(ev.soft).toLocaleString('ca');
+  const f=document.getElementById('s-feas');f.innerHTML=ev.hard===0?'<span class="badge ok">✓ sí</span>':'<span class="badge bad">✗ no</span>';
+}
+
+/* ───────────────────────── HORARI ───────────────────────── */
+function renderViewEnt(){
+  const mode=document.getElementById('view-mode').value;const sel=document.getElementById('view-ent');const cur=sel.value;
+  let list;
+  if(mode==='prof')list=S.prof.map(x=>({id:x.id,nom:x.nom}));
+  else if(mode==='aula')list=S.aula.map(x=>({id:x.id,nom:x.nom}));
+  else if(mode==='curs')list=[...new Set(S.assig.map(a=>(a.curs||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ca')).map(c=>({id:c,nom:c}));
+  else list=S.grup.map(x=>({id:x.id,nom:x.nom}));
+  sel.innerHTML=list.map(x=>`<option value="${esc(x.id)}">${esc(x.nom)}</option>`).join('');
+  if(cur&&list.find(x=>x.id===cur))sel.value=cur;
+}
+function ttGrid(items,mode){
+  const days=T().days,spd=T().slotsPerDay;
+  const keyOf=se=>mode==='curs'?se.grup:'_';
+  const occ={};items.forEach(se=>{const ky=keyOf(se);occ[ky]=occ[ky]||{};for(let k=0;k<se.dur;k++){const s=se.start+k;occ[ky][s]=(occ[ky][s]||0)+1;}});
+  const laneOf=new Map();const laneCount=days.map(()=>1);
+  for(let d=0;d<days.length;d++){const bl=items.filter(se=>dayOf(se.start)===d).sort((a,b)=>a.start-b.start||b.dur-a.dur);const ends=[];
+    bl.forEach(se=>{const s0=inDay(se.start),s1=s0+se.dur;let ln=ends.findIndex(e=>e<=s0);if(ln<0){ln=ends.length;ends.push(s1);}else ends[ln]=s1;laneOf.set(se,ln);});laneCount[d]=Math.max(1,ends.length);}
+  const colStart=[];let acc=2;for(let d=0;d<days.length;d++){colStart[d]=acc;acc+=laneCount[d];}
+  const template=`64px ${days.map((_,d)=>`repeat(${laneCount[d]},minmax(72px,1fr))`).join(' ')}`;
+  let h=`<div class="tt" style="grid-template-columns:${template};grid-template-rows:34px repeat(${spd},34px)">`;
+  h+=`<div class="hcell" style="grid-row:1;grid-column:1"></div>`;
+  days.forEach((d,di)=>h+=`<div class="hcell" style="grid-row:1;grid-column:${colStart[di]}/span ${laneCount[di]}">${esc(d)}</div>`);
+  for(let i=0;i<spd;i++){h+=`<div class="tcell" style="grid-row:${i+2};grid-column:1">${slotLabel(i)}</div>`;
+    for(let di=0;di<days.length;di++)h+=`<div class="gcell" style="grid-row:${i+2};grid-column:${colStart[di]}/span ${laneCount[di]}"></div>`;}
+  items.forEach(se=>{
+    const di=dayOf(se.start),ini=inDay(se.start),lane=laneOf.get(se)||0;
+    const a=S.assig.find(x=>x.id===se.assig);const g=S.grup.find(x=>x.id===se.grup);
+    const prof=S.prof.find(x=>x.id===S.sol.asgProf[se.inst]);const r=S.aula.find(x=>x.id===se.aula);
+    let conflict=false;{const o=occ[keyOf(se)];for(let k=0;k<se.dur;k++)if(o[se.start+k]>1)conflict=true;}
+    const col=a?.color||'#0f766e';let l1,l2;
+    if(mode==='grup'){l1=a?.nom||'?';l2=`${prof?.nom||'—'}${r?' · '+r.nom:''}`;}
+    else if(mode==='prof'){l1=`${a?.nom||'?'} · ${g?.nom||''}`;l2=r?r.nom:'';}
+    else {l1=a?.nom||'?';l2=`${g?.nom||''} · ${prof?.nom||'—'}`;}
+    h+=`<div class="blk ${conflict?'conflict':''}" title="${esc(l1)} — ${esc(l2)}" style="grid-column:${colStart[di]+lane};grid-row:${ini+2}/span ${se.dur};background:${col}"><b>${esc(l1)}</b><small>${esc(l2)}</small></div>`;
+  });
+  h+='</div>';
+  let confN=0;for(const ky in occ)confN+=Object.values(occ[ky]).filter(v=>v>1).length;
+  return {html:h,confN};
+}
+function renderTT(){
+  const vm=document.getElementById('view-mode');const aulaOpt=vm.querySelector('option[value=aula]');
+  if(aulaOpt)aulaOpt.disabled=(S.useAules===false);
+  if(vm.value==='aula'&&S.useAules===false)vm.value='grup';
+  renderViewEnt();
+  const wrap=document.getElementById('tt-wrap');const legend=document.getElementById('tt-legend');
+  if(!S.sol){wrap.innerHTML='<div class="hint" style="padding:18px">Encara no hi ha solució. Ves a <b>Resoldre</b> i prem ▶ Resol.</div>';legend.innerHTML='';document.getElementById('tt-warn').textContent='';return;}
+  const mode=vm.value, ent=document.getElementById('view-ent').value;
+  const items=S.sol.sessions.filter(se=>{
+    if(mode==='grup')return se.grup===ent;
+    if(mode==='prof')return S.sol.asgProf[se.inst]===ent;
+    return se.aula===ent;
+  });
+  const {html,confN}=ttGrid(items,mode);
+  wrap.innerHTML=html;
+  const present=[...new Set(items.map(s=>s.assig))];
+  legend.innerHTML=present.map(id=>{const a=S.assig.find(x=>x.id===id);return`<span class="li"><span class="sw" style="background:${a?.color}"></span>${esc(a?.nom||'')}</span>`;}).join('');
+  document.getElementById('tt-warn').innerHTML=confN?`<span class="badge bad">⚠ ${confN} solapament(s) en aquesta vista</span>`:'';
+}
+function escolaOf(curs){const a=S.assig.find(x=>(x.curs||'').trim()===curs&&(x.escola||'').trim());if(a)return (a.escola||'').trim();const m=/(ETSAB|ETSAV|EPSEB)/i.exec(curs||'');return m?m[1].toUpperCase():'';}
+function renderCursos(){
+  const wrap=document.getElementById('cursos-wrap');if(!wrap)return;
+  if(!S.sol){wrap.innerHTML='<div class="hint" style="padding:18px">Encara no hi ha solució. Ves a <b>Resoldre</b> i prem ▶ Resol.</div>';return;}
+  const escEl=document.getElementById('cur-escola');const pe=escEl.value;
+  const escList=[...new Set(S.assig.map(a=>(a.escola||'').trim()).filter(Boolean))];
+  const ORD=["ETSAB","ETSAV","EPSEB"];escList.sort((a,b)=>{const ia=ORD.indexOf(a),ib=ORD.indexOf(b);return (ia<0?9:ia)-(ib<0?9:ib)||a.localeCompare(b,'ca');});
+  escEl.innerHTML='<option value="">TOTES les escoles</option>'+escList.map(e=>`<option value="${esc(e)}">${esc(e)}</option>`).join('');
+  if(pe&&escList.includes(pe))escEl.value=pe;else escEl.value='';
+  const esc0=escEl.value;
+  const curSelEl=document.getElementById('cur-curs');const prev=curSelEl.value;
+  const cset=[...new Set(S.assig.map(a=>(a.curs||'').trim()).filter(Boolean))];
+  const opts=(esc0?cset.filter(c=>escolaOf(c)===esc0):cset.slice()).sort((a,b)=>a.localeCompare(b,'ca'));
+  curSelEl.innerHTML='<option value="">Tots els cursos</option>'+opts.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if(prev&&opts.includes(prev))curSelEl.value=prev;else curSelEl.value='';
+  const curSel=curSelEl.value;
+  let courses=curSel?[curSel]:opts.slice();
+  if(!courses.length){wrap.innerHTML='<div class="hint" style="padding:18px">Cap curs per a aquest filtre. Assigna el camp Curs a les assignatures (pestanya Dades).</div>';return;}
+  let h='';
+  for(const c of courses){
+    const items=S.sol.sessions.filter(se=>{const a=S.assig.find(x=>x.id===se.assig);return a&&(a.curs||'').trim()===c;});
+    if(!items.length)continue;
+    const g=ttGrid(items,'curs');
+    h+=`<div class="curs-block"><div class="curs-title">${esc(c)} <span class="curs-meta">${items.length} sessions</span>${g.confN?` <span class="badge bad">⚠ ${g.confN} solap. dins grup</span>`:''}</div><div class="tt-wrap">${g.html}</div></div>`;
+  }
+  wrap.innerHTML=h||'<div class="hint" style="padding:18px">Cap sessió per a aquest filtre.</div>';
+}
+
+/* ───────────────────────── MÈTRIQUES ───────────────────────── */
+function renderMetrics(){
+  const q=document.getElementById('m-quality'),ld=document.getElementById('m-load'),wl=document.getElementById('m-warns');
+  if(!S.sol){q.innerHTML=ld.innerHTML='<tr><td>—</td><td>sense solució</td></tr>';wl.innerHTML='';return;}
+  const model=buildModel();const ev=evaluate(model,S.sol);
+  const SF=S.soft;
+  const rows=[["Cost total",Math.round(ev.obj)],["Violacions dures",ev.hard],["Cost de desiderates",Math.round(ev.soft)]];
+  for(const k in ev.sb)rows.push([SF[k].name,Math.round(ev.sb[k])+" (×"+SF[k].w+")"]);
+  q.innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+  // càrrega
+  let lh='';for(const p of S.prof){const arr=ev.profOcc[p.id];let h=0;if(arr)for(let s=0;s<arr.length;s++)if(arr[s]>0)h++;
+    const hh=h*T().slotMin/60;const over=hh>p.carrega;
+    lh+=`<tr><td>${esc(p.nom)}</td><td style="color:${over?'var(--bad)':'inherit'}">${hh} / ${p.carrega} h</td></tr>`;}
+  ld.innerHTML=lh||'<tr><td>—</td><td>0</td></tr>';
+  // avisos
+  const w=[];
+  if(ev.hb.collProf)w.push(`${ev.hb.collProf} solapament(s) de professor`);
+  if(ev.hb.collGrup)w.push(`${ev.hb.collGrup} solapament(s) de grup`);
+  if(ev.hb.collAula)w.push(`${ev.hb.collAula} solapament(s) d'aula`);
+  if(ev.hb.disp)w.push(`${ev.hb.disp} hora(es) en franja no disponible`);
+  if(ev.hb.cap)w.push(`${ev.hb.cap} sessió(ns) amb aula petita`);
+  if(ev.hb.tipus)w.push(`${ev.hb.tipus} sessió(ns) amb tipus d'aula incorrecte`);
+  wl.innerHTML=w.length?w.map(x=>`<div class="w">⚠ ${x}</div>`).join(''):'<div class="w okrow">✓ Cap conflicte dur. Horari factible.</div>';
+}
+
+/* ───────────────────────── IMPORT/EXPORT ───────────────────────── */
+function exportJSON(){download(JSON.stringify(S,null,1),'horaris.json','application/json');}
+function importJSON(){document.getElementById('fileinput').click();}
+document.getElementById('fileinput').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{S=Object.assign(blank(),JSON.parse(r.result));bumpUid();renderAll();renderTT();renderMetrics();persist();}catch(err){alert("Fitxer no vàlid: "+err.message);}};r.readAsText(f);e.target.value='';};
+function exportCSV(){
+  if(!S.sol){alert("Resol primer un horari.");return;}
+  let csv="Dia,Hora inici,Hora fi,Assignatura,Grup,Professor,Aula\n";
+  for(const se of S.sol.sessions){const a=S.assig.find(x=>x.id===se.assig),g=S.grup.find(x=>x.id===se.grup),
+    p=S.prof.find(x=>x.id===S.sol.asgProf[se.inst]),r=S.aula.find(x=>x.id===se.aula);
+    csv+=`${T().days[dayOf(se.start)]},${slotLabel(inDay(se.start))},${slotLabel(inDay(se.start)+se.dur)},"${a?.nom||''}","${g?.nom||''}","${p?.nom||''}","${r?.nom||''}"\n`;}
+  download(csv,'horari.csv','text/csv');
+}
+function exportICS(){
+  if(!S.sol){alert("Resol primer un horari.");return;}
+  const base=new Date();base.setHours(0,0,0,0);const dow=(base.getDay()+6)%7;base.setDate(base.getDate()-dow); // dilluns
+  const pad=n=>String(n).padStart(2,'0');
+  const fmt=d=>d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+'00';
+  let ics="BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//combinador-horaris//CA\n";
+  for(const se of S.sol.sessions){const a=S.assig.find(x=>x.id===se.assig),g=S.grup.find(x=>x.id===se.grup),
+    p=S.prof.find(x=>x.id===S.sol.asgProf[se.inst]),r=S.aula.find(x=>x.id===se.aula);
+    const ds=new Date(base);ds.setDate(base.getDate()+dayOf(se.start));
+    const startMin=(T().startHour*60)+inDay(se.start)*T().slotMin;ds.setMinutes(startMin);
+    const de=new Date(ds);de.setMinutes(ds.getMinutes()+se.dur*T().slotMin);
+    ics+=`BEGIN:VEVENT\nDTSTART:${fmt(ds)}\nDTEND:${fmt(de)}\nSUMMARY:${a?.nom||''} (${g?.nom||''})\nLOCATION:${r?.nom||''}\nDESCRIPTION:${p?.nom||''}\nRRULE:FREQ=WEEKLY;COUNT=15\nEND:VEVENT\n`;}
+  download(ics+"END:VCALENDAR",'horari.ics','text/calendar');
+}
+function download(text,name,type){const b=new Blob([text],{type});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
+
+/* ───────────────────────── IMPORTACIÓ MARKDOWN / PORTA-RETALLS ───────────────────────── */
+const norm=s=>(s||"").toString().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
+const _isRow=l=>l.includes("|")&&!/^\s*#{1,6}\s/.test(l);
+const _isSep=l=>{const c=l.trim().replace(/^\|/,"").replace(/\|$/,"").split("|");return c.length>0&&c.every(x=>/^\s*:?-{1,}:?\s*$/.test(x));};
+const _splitRow=l=>l.trim().replace(/^\|/,"").replace(/\|$/,"").split("|").map(c=>c.trim());
+const _toNum=s=>{const v=parseFloat(String(s).replace(",","."));return isNaN(v)?null:v;};
+function _colIdx(headers,cands){const h=headers.map(norm);for(let i=0;i<h.length;i++)for(const c of cands)if(h[i].includes(c))return i;return -1;}
+function _entityOf(label,headers){const lab=norm(label);
+  if(lab.includes("afinitat"))return"afin";
+  if(lab.includes("professor"))return"prof";if(lab.includes("assignatur"))return"assig";if(lab.includes("grup"))return"grup";
+  const h=headers.map(norm),has=k=>h.some(x=>x.includes(k));
+  if(has("nivell")||has("afinitat")||(has("professor")&&has("assignatur")))return"afin";
+  if(has("mida")||has("alumne")||has("estudiant"))return"grup";
+  if(has("assignatur")&&!has("professor"))return"grup";
+  if(has("bloc")||has("tipus"))return"assig";
+  if(has("carrega")||has("carga")||has("dedicaci"))return"prof";return null;}
+function parseMD(text){const out={prof:[],assig:[],grup:[],afin:[]};const lines=text.split(/\r?\n/);let i=0,label="";
+  while(i<lines.length){const ln=lines[i];
+    if(/^\s*#{1,6}\s/.test(ln)){label=ln.replace(/^\s*#+\s*/,"").trim();i++;continue;}
+    if(_isRow(ln)&&!_isSep(ln)&&i+1<lines.length&&_isSep(lines[i+1])){
+      const headers=_splitRow(ln),rows=[];i+=2;
+      while(i<lines.length&&_isRow(lines[i])&&!_isSep(lines[i])){rows.push(_splitRow(lines[i]));i++;}
+      const ent=_entityOf(label,headers);
+      if(ent==="prof"){const c={n:_colIdx(headers,["nom"]),ca:_colIdx(headers,["carrega","carga","dedicaci","hores"]),es:_colIdx(headers,["escoles","escola","centres","schools"])};
+        for(const r of rows){const nom=(r[c.n]||"").trim();if(!nom)continue;
+          const escoles=[];(c.es>=0?(r[c.es]||""):"").split(/[,;/]/).map(x=>x.trim()).forEach(x=>{if(x&&!escoles.includes(x)&&escoles.length<3)escoles.push(x);});
+          out.prof.push({nom,carrega:_toNum(r[c.ca]),escoles});}}
+      else if(ent==="assig"){const c={n:_colIdx(headers,["nom","assignatura"]),h:_colIdx(headers,["hores","hor"]),b:_colIdx(headers,["bloc"]),t:_colIdx(headers,["tipus","aula","espai"]),cu:_colIdx(headers,["curs","course"]),es:_colIdx(headers,["escola","school","centre"])};
+        for(const r of rows){const nom=(r[c.n]||"").trim();if(!nom)continue;const tn=norm(r[c.t]||"");
+          const tip=TIPUS.find(t=>norm(t)===tn||(tn&&norm(t).startsWith(tn)))||"Aula";
+          const curs=c.cu>=0?(r[c.cu]||"").trim():"";
+          const escola=c.es>=0?(r[c.es]||"").trim():"";
+          out.assig.push({nom,hores:_toNum(r[c.h]),bloc:_toNum(r[c.b]),tipus:tip,curs,escola});}}
+      else if(ent==="grup"){const c={n:_colIdx(headers,["nom","grup"]),m:_colIdx(headers,["mida","alumne","estudiant","size"]),a:_colIdx(headers,["assignatur","assig","materi"]),es:_colIdx(headers,["escola","school","centre"]),cu:_colIdx(headers,["curs","course"])};
+        for(const r of rows){const nom=(r[c.n]||"").trim();if(!nom)continue;
+          const cell=(r[c.a]||"");const asg=(cell.includes(";")?cell.split(";"):cell.split(",")).map(x=>x.trim()).filter(Boolean);
+          out.grup.push({nom,mida:_toNum(r[c.m]),assig:asg,escola:c.es>=0?(r[c.es]||"").trim():"",curs:c.cu>=0?(r[c.cu]||"").trim():""});}}
+      else if(ent==="afin"){const c={p:_colIdx(headers,["professor","docent","nom"]),a:_colIdx(headers,["assignatura","assignatur","materia"]),n:_colIdx(headers,["nivell","afinitat","level","nivel"])};
+        for(const r of rows){const pn=(r[c.p]||"").trim(),an=(r[c.a]||"").trim();if(!pn||!an)continue;
+          out.afin.push({prof:pn,assig:an,nivell:_toNum(r[c.n])});}}
+      continue;}
+    if(ln.trim()&&!_isRow(ln))label=ln.trim();i++;}
+  return out;}
+
+function applyImport(parsed,mode){const unmatched=[],unmatchedProf=[],unmatchedAssig=[];
+  if(parsed.assig.length){const byName=new Map(S.assig.map(a=>[norm(a.nom),a]));const keep=new Set();
+    for(const p of parsed.assig){const k=norm(p.nom);let a=byName.get(k);const tip=TIPUS.includes(p.tipus)?p.tipus:"Aula";
+      if(a){if(p.hores!=null)a.hores=p.hores;if(p.bloc!=null)a.bloc=p.bloc;if(p.tipus)a.tipus=tip;if(p.curs)a.curs=p.curs;if(p.escola)a.escola=p.escola;}
+      else{a={id:nid("a"),nom:p.nom,hores:p.hores??2,bloc:p.bloc??2,tipus:tip,curs:p.curs||"",escola:p.escola||"",color:randColor()};S.assig.push(a);byName.set(k,a);}keep.add(a.id);}
+    if(mode==="replace"){const rem=new Set(S.assig.filter(a=>!keep.has(a.id)).map(a=>a.id));
+      S.assig=S.assig.filter(a=>keep.has(a.id));
+      S.grup.forEach(g=>g.assig=(g.assig||[]).filter(id=>!rem.has(id)));
+      for(const pid in S.afin)for(const aid of rem)delete S.afin[pid][aid];}}
+  if(parsed.prof.length){const byName=new Map(S.prof.map(p=>[norm(p.nom),p]));const keep=new Set();
+    for(const pp of parsed.prof){const k=norm(pp.nom);let p=byName.get(k);
+      if(p){if(pp.carrega!=null)p.carrega=pp.carrega;if(pp.escoles&&pp.escoles.length)p.escoles=pp.escoles;}
+      else{const id=nid("p");p={id,nom:pp.nom,carrega:pp.carrega??20,escoles:pp.escoles||[]};S.prof.push(p);S.avail[id]=S.avail[id]||{};S.afin[id]=S.afin[id]||{};byName.set(k,p);}keep.add(p.id);}
+    if(mode==="replace"){const rem=S.prof.filter(p=>!keep.has(p.id)).map(p=>p.id);
+      S.prof=S.prof.filter(p=>keep.has(p.id));rem.forEach(id=>{delete S.avail[id];delete S.afin[id];});}}
+  if(parsed.grup.length){const aByName=new Map(S.assig.map(a=>[norm(a.nom),a.id]));
+    const byName=new Map(S.grup.map(g=>[norm(g.nom),g]));const keep=new Set();
+    for(const pg of parsed.grup){const ids=[];for(const n of (pg.assig||[])){const id=aByName.get(norm(n));if(id)ids.push(id);else unmatched.push(n);}
+      const k=norm(pg.nom);let g=byName.get(k);
+      if(g){if(pg.mida!=null)g.mida=pg.mida;if(pg.assig&&pg.assig.length)g.assig=ids;if(pg.escola)g.escola=pg.escola;if(pg.curs)g.curs=pg.curs;}
+      else{g={id:nid("g"),nom:pg.nom,mida:pg.mida??30,assig:ids,escola:pg.escola||"",curs:pg.curs||""};S.grup.push(g);byName.set(k,g);}keep.add(g.id);}
+    if(mode==="replace")S.grup=S.grup.filter(g=>keep.has(g.id));}
+  if(parsed.afin&&parsed.afin.length){
+    const pBy=new Map(S.prof.map(p=>[norm(p.nom),p.id]));
+    const aBy=new Map(S.assig.map(a=>[norm(a.nom),a.id]));
+    for(const af of parsed.afin){
+      const pid=pBy.get(norm(af.prof)),aid=aBy.get(norm(af.assig));
+      if(!pid){unmatchedProf.push(af.prof);continue;}
+      if(!aid){unmatchedAssig.push(af.assig);continue;}
+      S.afin[pid]=S.afin[pid]||{};
+      let lv=af.nivell==null?3:af.nivell;lv=Math.max(0,Math.min(3,Math.round(lv)));
+      S.afin[pid][aid]=lv;}}
+  return{unmatched:[...new Set(unmatched)],unmatchedProf:[...new Set(unmatchedProf)],unmatchedAssig:[...new Set(unmatchedAssig)]};}
+
+function setMsg(t,err){const el=document.getElementById('md-msg');el.textContent=t;el.classList.toggle('msg-err',!!err);}
+function doImportMD(mode){
+  const txt=document.getElementById('md-in').value;
+  const parsed=parseMD(txt);
+  const n=parsed.prof.length+parsed.assig.length+parsed.grup.length+parsed.afin.length;
+  if(!n){setMsg("No s'ha trobat cap taula vàlida. Comprova que hi hagi capçaleres de columna (Nom, Hores, Bloc, Tipus, Professor, Assignatura, Nivell…) i la fila separadora |---|.",true);return;}
+  if(mode==="replace"){const parts=[];
+    if(parsed.assig.length)parts.push(parsed.assig.length+" assignatures");
+    if(parsed.prof.length)parts.push(parsed.prof.length+" professors");
+    if(parsed.grup.length)parts.push(parsed.grup.length+" grups");
+    if(parts.length&&!confirm("Substituirà "+parts.join(", ")+". Els registres existents d'aquests tipus que no apareguin al text s'eliminaran. Les afinitats s'actualitzen sense esborrar les altres. Vols continuar?"))return;}
+  const res=applyImport(parsed,mode);
+  renderAll();renderTT();renderMetrics();persist();
+  let msg=`Importats: ${parsed.assig.length} assignatures, ${parsed.prof.length} professors, ${parsed.grup.length} grups, ${parsed.afin.length} afinitats (mode: ${mode==="add"?"afegeix/actualitza":"substitueix"}).`;
+  if(res.unmatched.length)msg+=` ⚠ Assignatures citades en grups però no trobades: ${res.unmatched.join(", ")}.`;
+  if(res.unmatchedProf.length)msg+=` ⚠ Professors d'afinitats no trobats (afegeix-los primer): ${res.unmatchedProf.join(", ")}.`;
+  if(res.unmatchedAssig.length)msg+=` ⚠ Assignatures d'afinitats no trobades: ${res.unmatchedAssig.join(", ")}.`;
+  setMsg(msg,false);
+}
+document.getElementById('mdfile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{document.getElementById('md-in').value=r.result;setMsg("Fitxer carregat. Tria «Afegeix / actualitza» o «Substitueix».",false);};
+  r.readAsText(f);e.target.value='';};
+
+const PROMPT_TEMPLATE=`Ets un assistent que converteix dades d'horaris universitaris en taules Markdown per importar-les a "Guaita horaris".
+
+A partir del text que t'enganxo més avall (extret d'una web), genera EXACTAMENT aquestes quatre taules en Markdown, sense cap explicació abans ni després. Si no tens dades d'alguna taula, omet-la sencera.
+
+Regles:
+- "Tipus" només pot ser un de: Aula, Taller, Informàtica, Laboratori.
+- "Escola" (a Assignatures) és una de: ETSAB, ETSAV, EPSEB. És l'escola a què pertany l'assignatura.
+- "Curs" identifica el curs o nivell dins l'escola (p. ex. "1r", "Qm verd", "1A", "Optatives"). Serveix per organitzar i per veure el calendari per curs.
+- "Hores" i "Bloc" són hores per setmana (nombres). El bloc és la durada mínima d'una sessió (els tallers volen blocs llargs).
+- "Escoles" (a Professors) és una llista ordenada per prioritat, separada per comes, amb fins a 3 valors de {ETSAB, ETSAV, EPSEB}. La 1a és l'escola principal del professor; la 2a i 3a, secundàries. El motor hi assigna preferentment la 1a.
+- A "Grups", la columna Assignatures és una llista separada per punt i coma (;) amb noms EXACTAMENT iguals als de la taula d'Assignatures.
+- A "Afinitats", una fila per parella professor–assignatura. "Nivell" va de 0 a 3 (3 = idoni, 0 = no pot). Els noms de Professor i Assignatura han de coincidir EXACTAMENT amb les altres taules. Posa-hi els coordinadors o responsables de cada assignatura amb nivell 3.
+- Un registre per fila. No afegeixis files de total ni notes.
+
+## Assignatures
+| Nom | Escola | Curs | Hores | Bloc | Tipus |
+|-----|--------|------|-------|------|-------|
+| Optativa Fotografia | ETSAB | Optatives | 3 | 3 | Aula |
+
+## Professors
+| Nom | Càrrega (h) | Escoles |
+|-----|-------------|---------|
+| Nom Cognom | 16 | ETSAB, ETSAV |
+
+## Grups
+| Nom | Escola | Curs | Mida | Assignatures |
+|-----|--------|------|------|--------------|
+| 2n matí 1 | ETSAB | 2n | 28 | RAII |
+
+## Afinitats
+| Professor | Assignatura | Nivell |
+|-----------|-------------|--------|
+| Nom Cognom | RAIV | 3 |
+
+Aquí tens les dades:
+<enganxa aquí el text extret de la web>`;
+function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t);
+  return new Promise((res,rej)=>{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}document.body.removeChild(ta);ok?res():rej();});}
+function copyPrompt(){copyText(PROMPT_TEMPLATE).then(()=>setMsg("Plantilla de prompt copiada. Enganxa-la a la teva IA amb les dades de la web.",false),()=>setMsg("No s'ha pogut copiar automàticament. El prompt és a la consola.",true)||console.log(PROMPT_TEMPLATE));}
+
+/* ───────────────────────── RENDER GLOBAL ───────────────────────── */
+function renderAll(){renderTables();renderDispSel();renderDisp();renderAfin();renderRestr();renderViewEnt();const bw=document.getElementById('btn-warm');if(bw)bw.disabled=!S.sol||solving;persistSoon();}
+
+/* tabs */
+document.getElementById('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('nav.tabs button').forEach(x=>x.classList.toggle('active',x===b));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+b.dataset.tab));
+  if(b.dataset.tab==='horari')renderTT();if(b.dataset.tab==='metr')renderMetrics();if(b.dataset.tab==='cursos')renderCursos();
+};
+
+/* ───────────────────────── DADES D'EXEMPLE ───────────────────────── */
+function loadSample(){
+  S=blank();uid=1;
+  const A=(nom,escola,curs,hores,bloc,tipus,color)=>{const id=nid('a');S.assig.push({id,nom,escola,curs,hores,bloc,tipus,color});return id;};
+  const d1=A("Dibuix I","ETSAB","1r",4,2,"Taller","#0f766e");
+  const d2=A("Dibuix II","ETSAB","1r",4,2,"Taller","#0891b2");
+  const r1=A("RAI","ETSAB","2n",4,2,"Taller","#b45309");
+  const r2=A("RAII","ETSAB","2n",4,2,"Taller","#be123c");
+  const r3=A("RAIII","ETSAB","3r",4,2,"Taller","#6d28d9");
+  const r4=A("RAIV","ETSAB","4t",4,2,"Taller","#1d4ed8");
+  // Les optatives s'afegeixen manualment des de la pestanya Dades.
+  const P=(nom,car,escoles)=>{const id=nid('p');S.prof.push({id,nom,carrega:car,escoles:escoles||[]});S.avail[id]={};S.afin[id]={};return id;};
+  const p1=P("Jordi M.",16,["ETSAB"]),p2=P("Anna R.",16,["ETSAB"]),p3=P("Lluís F.",14,["ETSAB","ETSAV"]),p4=P("Marta S.",16,["ETSAB"]),p5=P("Pau V.",12,["ETSAV","ETSAB"]),p6=P("Núria G.",14,["ETSAB"]);
+  const R=(nom,cap,tipus)=>{const id=nid('r');S.aula.push({id,nom,cap,tipus});return id;};
+  R("Taller A",35,"Taller");R("Taller B",35,"Taller");R("Taller C",40,"Taller");
+  R("Aula 1.1",45,"Aula");R("Aula Informàtica",36,"Informàtica");
+  const G=(nom,mida,assig,escola,curs)=>{S.grup.push({id:nid('g'),nom,mida,assig,escola:escola||"",curs:curs||""});};
+  G("1r matí 1",32,[d1,d2],"ETSAB","1r");
+  G("1r matí 2",30,[d1,d2],"ETSAB","1r");
+  G("2n matí 1",30,[r1,r2],"ETSAB","2n");
+  G("3r-4t matí 1",26,[r3,r4],"ETSAB","3r-4t");
+  const af=(p,a,v)=>{S.afin[p][a]=v;};
+  af(p1,r1,3);af(p1,r2,2);af(p1,d1,2);
+  af(p2,d1,3);af(p2,d2,3);
+  af(p3,r2,3);af(p3,r3,2);
+  af(p4,r3,3);af(p4,r4,3);
+  af(p5,d2,2);af(p5,r1,3);
+  af(p6,r4,2);af(p6,r1,2);af(p6,d1,2);
+  for(const p of S.prof)for(let s=0;s<totalSlots();s++)S.avail[p.id][s]=1;
+  for(let i=0;i<T().slotsPerDay;i++)S.avail[p3][4*T().slotsPerDay+i]=0;        // Lluís no ve divendres
+  for(let d=0;d<5;d++)for(let i=6;i<T().slotsPerDay;i++)S.avail[p5][d*T().slotsPerDay+i]=0; // Pau només matins
+  for(let d=0;d<5;d++)for(let i=1;i<5;i++)S.avail[p1][d*T().slotsPerDay+i]=2;   // Jordi prefereix matí
+  S.badSlots=[];
+  renderAll();renderTT();renderMetrics();persist();
+}
+
+function loadSampleConfirm(){if(S.assig.length&&!confirm("Això substituirà les dades actuals per l'exemple. Vols continuar?"))return;loadSample();}
+
+/* ───────────────────────── PERSISTÈNCIA ENTRE SESSIONS ───────────────────────── */
+const KEY="sbsbim_horaris_v1";
+let saveTimer=null;
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){/* sandbox o quota: s'ignora */}}
+function persistSoon(){clearTimeout(saveTimer);saveTimer=setTimeout(persist,400);}
+function bumpUid(){let mx=0;const scan=a=>(a||[]).forEach(o=>{const m=/(\d+)$/.exec(o&&o.id||"");if(m)mx=Math.max(mx,+m[1]);});scan(S.assig);scan(S.prof);scan(S.aula);scan(S.grup);uid=mx+1;}
+document.addEventListener('input',persistSoon,true);
+document.addEventListener('change',persistSoon,true);
+
+/* init: recupera la sessió desada o carrega l'exemple */
+function start(){
+  try{const raw=localStorage.getItem(KEY);
+    if(raw){S=Object.assign(blank(),JSON.parse(raw));bumpUid();renderAll();renderTT();renderMetrics();return;}
+  }catch(e){/* res desat o no accessible */}
+  loadSample();
+}
+start();
+</script>
+</body>
+</html>
